@@ -1,0 +1,304 @@
+{
+  "info": {
+    "name": "MOVIC API",
+    "description": "Colecao para testar o MVP do MOVIC",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8000/api" },
+    { "key": "token", "value": "" },
+    { "key": "teacherEmail", "value": "test@example.com" },
+    { "key": "teacherPassword", "value": "password" },
+    { "key": "studentEmail", "value": "student@example.com" },
+    { "key": "studentPassword", "value": "password" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register Teacher",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/auth/register", "host": ["{{baseUrl}}"], "path": ["auth", "register"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Professor Teste\",\n  \"email\": \"{{teacherEmail}}\",\n  \"password\": \"{{teacherPassword}}\",\n  \"role\": \"teacher\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Register Student",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/auth/register", "host": ["{{baseUrl}}"], "path": ["auth", "register"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Aluno Teste\",\n  \"email\": \"{{studentEmail}}\",\n  \"password\": \"{{studentPassword}}\",\n  \"role\": \"student\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  var json = pm.response.json();",
+                  "  pm.collectionVariables.set('token', json.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{teacherEmail}}\",\n  \"password\": \"{{teacherPassword}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/me", "host": ["{{baseUrl}}"], "path": ["me"] }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/auth/logout", "host": ["{{baseUrl}}"], "path": ["auth", "logout"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Teacher",
+      "item": [
+        {
+          "name": "Invite Student",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/teacher/students/invite", "host": ["{{baseUrl}}"], "path": ["teacher", "students", "invite"] },
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{studentEmail}}\"\n}" }
+          }
+        },
+        {
+          "name": "List Students",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/teacher/students", "host": ["{{baseUrl}}"], "path": ["teacher", "students"] }
+          }
+        },
+        {
+          "name": "Approve Student",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/teacher/students/{{studentId}}/approve", "host": ["{{baseUrl}}"], "path": ["teacher", "students", "{{studentId}}", "approve"] },
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"active\"\n}" }
+          }
+        },
+        {
+          "name": "Create Exercise",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/teacher/exercises", "host": ["{{baseUrl}}"], "path": ["teacher", "exercises"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Supino\",\n  \"category\": \"Peito\",\n  \"video_url\": \"https://example.com/video\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List Exercises",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/teacher/exercises", "host": ["{{baseUrl}}"], "path": ["teacher", "exercises"] }
+          }
+        },
+        {
+          "name": "Update Exercise",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/teacher/exercises/{{exerciseId}}", "host": ["{{baseUrl}}"], "path": ["teacher", "exercises", "{{exerciseId}}"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Supino reto\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Exercise",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/teacher/exercises/{{exerciseId}}", "host": ["{{baseUrl}}"], "path": ["teacher", "exercises", "{{exerciseId}}"] }
+          }
+        },
+        {
+          "name": "Create Plan",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/teacher/students/{{studentId}}/plans", "host": ["{{baseUrl}}"], "path": ["teacher", "students", "{{studentId}}", "plans"] },
+            "body": { "mode": "raw", "raw": "{\n  \"title\": \"Plano A\"\n}" }
+          }
+        },
+        {
+          "name": "Activate Plan",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/teacher/plans/{{planId}}/activate", "host": ["{{baseUrl}}"], "path": ["teacher", "plans", "{{planId}}", "activate"] }
+          }
+        },
+        {
+          "name": "Create Workout Day",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/teacher/plans/{{planId}}/days", "host": ["{{baseUrl}}"], "path": ["teacher", "plans", "{{planId}}", "days"] },
+            "body": { "mode": "raw", "raw": "{\n  \"weekday\": 1,\n  \"title\": \"Segunda\"\n}" }
+          }
+        },
+        {
+          "name": "Create Workout Item",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/teacher/days/{{dayId}}/items", "host": ["{{baseUrl}}"], "path": ["teacher", "days", "{{dayId}}", "items"] },
+            "body": { "mode": "raw", "raw": "{\n  \"exercise_id\": {{exerciseId}},\n  \"sets\": 3,\n  \"reps\": \"12\"\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Student",
+      "item": [
+        {
+          "name": "Active Plan",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/student/plan/active", "host": ["{{baseUrl}}"], "path": ["student", "plan", "active"] }
+          }
+        },
+        {
+          "name": "Start Session",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/student/sessions/start", "host": ["{{baseUrl}}"], "path": ["student", "sessions", "start"] },
+            "body": { "mode": "raw", "raw": "{\n  \"workout_day_id\": {{dayId}}\n}" }
+          }
+        },
+        {
+          "name": "Check Item",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/student/sessions/{{sessionId}}/check", "host": ["{{baseUrl}}"], "path": ["student", "sessions", "{{sessionId}}", "check"] },
+            "body": { "mode": "raw", "raw": "{\n  \"workout_item_id\": {{itemId}},\n  \"is_checked\": true\n}" }
+          }
+        },
+        {
+          "name": "Finish Session",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/student/sessions/{{sessionId}}/finish", "host": ["{{baseUrl}}"], "path": ["student", "sessions", "{{sessionId}}", "finish"] }
+          }
+        },
+        {
+          "name": "List Payments",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/student/payments", "host": ["{{baseUrl}}"], "path": ["student", "payments"] }
+          }
+        },
+        {
+          "name": "Create Manual Payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/student/payments/manual", "host": ["{{baseUrl}}"], "path": ["student", "payments", "manual"] },
+            "body": { "mode": "raw", "raw": "{\n  \"plan_id\": {{planId}},\n  \"amount_cents\": 9900,\n  \"method\": \"pix\"\n}" }
+          }
+        }
+      ]
+    }
+  ]
+}

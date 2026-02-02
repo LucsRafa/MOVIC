@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  background: linear-gradient(180deg, #1a1f2e 0%, #2C3E60 55%, #27AE60 100%);
+  color: #141414;
+  min-height: 100vh;
+}

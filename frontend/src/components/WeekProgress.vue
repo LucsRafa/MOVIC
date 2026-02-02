@@ -1,0 +1,40 @@
+﻿<template>
+  <div class="rounded-2xl bg-white/5 p-4">
+    <div class="mb-3">
+      <h3 class="text-lg font-semibold text-white">Semana Atual</h3>
+      <p class="text-sm text-white/50">Seu progresso semanal</p>
+    </div>
+
+    <div class="space-y-3">
+      <button
+        v-for="day in days"
+        :key="day.weekday"
+        class="w-full rounded-xl border border-white/10 px-4 py-3 text-left"
+        :class="day.status === 'completed' ? 'bg-emerald-500/10 border-emerald-400/30' : day.status === 'missed' ? 'bg-red-500/10 border-red-400/30' : 'bg-white/5'"
+        @click="$emit('select', day.weekday)"
+      >
+        <div class="flex items-center gap-3">
+          <div
+            class="flex h-8 w-8 items-center justify-center rounded-full border"
+            :class="day.status === 'completed' ? 'border-emerald-400 text-emerald-300' : day.status === 'missed' ? 'border-red-400 text-red-300' : 'border-white/20 text-white/60'"
+          >
+            <span v-if="day.status === 'completed'">ok</span>
+            <span v-else-if="day.status === 'missed'">x</span>
+            <span v-else>o</span>
+          </div>
+          <div>
+            <p class="text-white">{{ weekdayLabel(day.weekday) }}</p>
+            <p class="text-xs text-white/60">{{ day.title }}</p>
+          </div>
+        </div>
+      </button>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+const props = defineProps<{ days: any[] }>()
+
+const labels = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab']
+const weekdayLabel = (weekday: number) => labels[weekday] || ''
+</script>
