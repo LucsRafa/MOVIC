@@ -17,7 +17,11 @@ class UserProfileController extends Controller
         $user = $request->user();
         $user->update($request->validated());
 
-        return response()->json(['user' => $user]);
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Perfil atualizado com sucesso.',
+            'user' => $user,
+        ]);
     }
 
     public function updatePassword(UpdatePasswordRequest $request): JsonResponse
@@ -32,7 +36,10 @@ class UserProfileController extends Controller
             'password' => Hash::make($request->validated()['password']),
         ]);
 
-        return response()->json(['message' => 'Senha atualizada']);
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Senha atualizada com sucesso.',
+        ]);
     }
 
     public function uploadAvatar(UploadAvatarRequest $request): JsonResponse
@@ -43,6 +50,10 @@ class UserProfileController extends Controller
 
         $user->update(['avatar_url' => $url]);
 
-        return response()->json(['avatar_url' => $url]);
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Avatar atualizado com sucesso.',
+            'avatar_url' => $url,
+        ]);
     }
 }

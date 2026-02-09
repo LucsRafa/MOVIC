@@ -34,7 +34,11 @@ class WorkoutPlanController extends Controller
             'is_active' => $request->validated()['is_active'] ?? true,
         ]);
 
-        return response()->json(['plan' => $plan], 201);
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Plano criado com sucesso.',
+            'plan' => $plan,
+        ], 201);
     }
 
     public function activate(WorkoutPlan $plan, WorkoutPlanService $service): JsonResponse
@@ -43,6 +47,10 @@ class WorkoutPlanController extends Controller
 
         $service->activatePlan($plan);
 
-        return response()->json(['plan' => $plan->fresh()]);
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Plano ativado com sucesso.',
+            'plan' => $plan->fresh(),
+        ]);
     }
 }

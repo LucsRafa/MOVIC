@@ -29,7 +29,10 @@ class WorkoutSessionController extends Controller
 
         $session = $service->startSession(Auth::user(), $day, $data['session_date'] ?? null);
 
-        return response()->json(['session' => $session]);
+        return response()->json([
+            'status' => 'success',
+            'session' => $session,
+        ]);
     }
 
     public function check(WorkoutItemCheckRequest $request, WorkoutSession $session): JsonResponse
@@ -54,7 +57,10 @@ class WorkoutSessionController extends Controller
             ]
         );
 
-        return response()->json(['check' => $check]);
+        return response()->json([
+            'status' => 'success',
+            'check' => $check,
+        ]);
     }
 
     public function finish(WorkoutSessionFinishRequest $request, WorkoutSession $session): JsonResponse
@@ -66,6 +72,10 @@ class WorkoutSessionController extends Controller
             'finished_at' => Carbon::now(),
         ]);
 
-        return response()->json(['session' => $session->fresh()]);
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Treino finalizado com sucesso.',
+            'session' => $session->fresh(),
+        ]);
     }
 }

@@ -30,6 +30,9 @@
   </div>
 
   <form class="mt-6 space-y-4" @submit.prevent="submit">
+    <p v-if="errorMessage" class="rounded-xl bg-red-50 px-4 py-2 text-sm text-red-600">
+      {{ errorMessage }}
+    </p>
     <label class="block text-left text-sm font-medium text-slate-600">Email:</label>
     <div class="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
       <span class="text-slate-400">@</span>
@@ -125,10 +128,21 @@ const showPassword = ref(false)
 const role = ref<'teacher' | 'student'>('student')
 const auth = useAuthStore()
 const router = useRouter()
+const errorMessage = ref('')
 
 const submit = async () => {
+  errorMessage.value = ''
   await auth.login({ email: email.value, password: password.value })
-  if (auth.user?.role === 'teacher') {
+  const actualRole = auth.user?.role
+  if (actualRole && actualRole !== role.value) {
+    await auth.logout()
+    errorMessage.value =
+      role.value === 'student'
+        ? 'Este usuario e professor. Use a opcao Professor para entrar.'
+        : 'Este usuario e aluno. Use a opcao Aluno para entrar.'
+    return
+  }
+  if (actualRole === 'teacher') {
     router.push('/teacher/dashboard')
   } else {
     router.push('/student/dashboard')

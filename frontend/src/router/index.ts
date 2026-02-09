@@ -1,13 +1,17 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import AuthLayout from '../layouts/AuthLayout.vue'
 import AppLayout from '../layouts/AppLayout.vue'
+import TeacherLayout from '../layouts/TeacherLayout.vue'
 import Login from '../pages/Login.vue'
 import Register from '../pages/Register.vue'
 import ForgotPassword from '../pages/ForgotPassword.vue'
 import TeacherDashboard from '../pages/Teacher/Dashboard.vue'
+import TeacherRequests from '../pages/Teacher/Requests.vue'
 import TeacherStudents from '../pages/Teacher/Students.vue'
+import TeacherWorkouts from '../pages/Teacher/Workouts.vue'
 import TeacherExercises from '../pages/Teacher/Exercises.vue'
-import TeacherPlans from '../pages/Teacher/Plans.vue'
+import TeacherPayments from '../pages/Teacher/Payments.vue'
+import TeacherHistory from '../pages/Teacher/History.vue'
 import StudentDashboard from '../pages/Student/Dashboard.vue'
 import StudentWorkoutDay from '../pages/Student/WorkoutDay.vue'
 
@@ -31,13 +35,16 @@ const router = createRouter({
     },
     {
       path: '/teacher',
-      component: AppLayout,
+      component: TeacherLayout,
       meta: { role: 'teacher' },
       children: [
         { path: 'dashboard', component: TeacherDashboard },
+        { path: 'requests', component: TeacherRequests },
         { path: 'students', component: TeacherStudents },
+        { path: 'workouts', component: TeacherWorkouts },
         { path: 'exercises', component: TeacherExercises },
-        { path: 'plans', component: TeacherPlans }
+        { path: 'payments', component: TeacherPayments },
+        { path: 'history', component: TeacherHistory }
       ]
     },
     {

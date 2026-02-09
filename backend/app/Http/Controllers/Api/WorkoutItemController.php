@@ -26,6 +26,10 @@ class WorkoutItemController extends Controller
             'notes' => $data['notes'] ?? null,
         ]);
 
-        return response()->json(['item' => $item], 201);
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Item criado com sucesso.',
+            'item' => $item,
+        ], 201);
     }
 }

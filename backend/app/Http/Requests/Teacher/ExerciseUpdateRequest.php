@@ -18,7 +18,8 @@ class ExerciseUpdateRequest extends FormRequest
             'name' => ['sometimes', 'string', 'max:255'],
             'category' => ['nullable', 'string', 'max:100'],
             'description' => ['nullable', 'string'],
-            'video_url' => ['sometimes', 'url', 'max:2048'],
+            'video_url' => ['nullable', 'url', 'max:2048'],
+            'video_file' => ['nullable', 'file', 'mimetypes:video/mp4,video/quicktime,video/x-msvideo', 'max:51200'],
             'thumbnail_url' => ['nullable', 'url', 'max:2048'],
             'is_active' => ['nullable', 'boolean'],
         ];

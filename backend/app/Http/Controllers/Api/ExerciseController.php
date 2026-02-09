@@ -8,6 +8,7 @@ use App\Http\Requests\Teacher\ExerciseUpdateRequest;
 use App\Models\Exercise;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class ExerciseController extends Controller
 {
@@ -17,35 +18,61 @@ class ExerciseController extends Controller
 
         $exercises = Exercise::where('teacher_id', Auth::id())->get();
 
-        return response()->json(['exercises' => $exercises]);
+        return response()->json([
+            'status' => 'success',
+            'exercises' => $exercises,
+        ]);
     }
 
     public function store(ExerciseStoreRequest $request): JsonResponse
     {
         $this->authorize('create', Exercise::class);
 
+        $data = $request->validated();
+        if ($request->hasFile('video_file')) {
+            $path = $request->file('video_file')->store('exercises', 'public');
+            $data['video_url'] = Storage::url($path);
+        }
+
         $exercise = Exercise::create(array_merge(
-            $request->validated(),
+            $data,
             ['teacher_id' => Auth::id()]
         ));
 
-        return response()->json(['exercise' => $exercise], 201);
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Exercicio criado com sucesso.',
+            'exercise' => $exercise,
+        ], 201);
     }
 
     public function show(Exercise $exercise): JsonResponse
     {
         $this->authorize('view', $exercise);
 
-        return response()->json(['exercise' => $exercise]);
+        return response()->json([
+            'status' => 'success',
+            'exercise' => $exercise,
+        ]);
     }
 
     public function update(ExerciseUpdateRequest $request, Exercise $exercise): JsonResponse
     {
         $this->authorize('update', $exercise);
 
-        $exercise->update($request->validated());
+        $data = $request->validated();
+        if ($request->hasFile('video_file')) {
+            $path = $request->file('video_file')->store('exercises', 'public');
+            $data['video_url'] = Storage::url($path);
+        }
 
-        return response()->json(['exercise' => $exercise]);
+        $exercise->update($data);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Exercicio atualizado com sucesso.',
+            'exercise' => $exercise,
+        ]);
     }
 
     public function destroy(Exercise $exercise): JsonResponse
@@ -54,6 +81,9 @@ class ExerciseController extends Controller
 
         $exercise->delete();
 
-        return response()->json(['message' => 'Deleted']);
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Exercicio removido com sucesso.',
+        ]);
     }
 }

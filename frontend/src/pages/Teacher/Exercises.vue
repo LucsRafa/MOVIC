@@ -1,62 +1,87 @@
 <template>
-  <section>
-    <h1 class="text-3xl font-semibold">Exercicios</h1>
-
-    <div class="mt-6 grid gap-6 lg:grid-cols-[1.1fr_1fr]">
-      <div class="rounded-2xl bg-white/80 p-6 shadow">
-        <h2 class="text-lg font-semibold">Biblioteca</h2>
-        <ul class="mt-4 space-y-3">
-          <li v-for="exercise in teacher.exercises" :key="exercise.id" class="flex items-center justify-between rounded-xl border border-black/5 px-4 py-3">
-            <div>
-              <p class="font-medium">{{ exercise.name }}</p>
-              <p class="text-xs text-black/50">{{ exercise.category }}</p>
-            </div>
-            <button class="text-sm text-ember" @click="remove(exercise.id)">Remover</button>
-          </li>
-        </ul>
-      </div>
-
-      <div class="rounded-2xl bg-white/80 p-6 shadow">
-        <h2 class="text-lg font-semibold">Novo exercicio</h2>
-        <form class="mt-4 space-y-3" @submit.prevent="create">
-          <input v-model="form.name" class="w-full rounded-xl border border-black/10 px-4 py-3" placeholder="Nome" />
-          <input v-model="form.category" class="w-full rounded-xl border border-black/10 px-4 py-3" placeholder="Categoria" />
-          <input v-model="form.video_url" class="w-full rounded-xl border border-black/10 px-4 py-3" placeholder="Video URL" />
-          <button class="w-full rounded-xl bg-ember px-4 py-3 text-white">Salvar</button>
-        </form>
+  <div class="space-y-4">
+    <div class="rounded-2xl bg-white/5 p-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="text-lg font-semibold">Biblioteca de Exercicios</h3>
+          <p class="text-sm text-white/60">Cadastre exercicios com videos instrutivos</p>
+        </div>
+        <button class="rounded-xl bg-emerald-500 px-4 py-2 text-xs font-semibold" @click="openCreate">
+          Novo Exercicio
+        </button>
       </div>
     </div>
-  </section>
+
+    <div v-for="exercise in exercises" :key="exercise.id" class="rounded-2xl bg-white/5 p-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="font-semibold">{{ exercise.name }}</p>
+          <p class="text-xs text-white/50">{{ exercise.category || 'Grupo' }}</p>
+        </div>
+        <button class="rounded-xl bg-white/10 px-4 py-2 text-xs" @click="openDetails(exercise)">
+          Ver Detalhes
+        </button>
+      </div>
+    </div>
+
+    <ExerciseCreateModal
+      v-if="showCreate"
+      :loading="creating"
+      :error="createError"
+      @close="showCreate = false"
+      @create="create"
+    />
+    <ExerciseDetailsModal
+      v-if="selected"
+      :exercise="selected"
+      @close="selected = null"
+      @delete="deleteExercise"
+    />
+  </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useTeacherStore } from '../../stores/teacher'
+import ExerciseCreateModal from '../../components/ExerciseCreateModal.vue'
+import ExerciseDetailsModal from '../../components/ExerciseDetailsModal.vue'
 
 const teacher = useTeacherStore()
+const exercises = computed(() => teacher.exercises)
+const showCreate = ref(false)
+const selected = ref<any>(null)
+const creating = ref(false)
+const createError = ref('')
 
-const form = reactive({
-  name: '',
-  category: '',
-  video_url: ''
-})
-
-const create = async () => {
-  await teacher.createExercise({
-    name: form.name,
-    category: form.category || null,
-    video_url: form.video_url
-  })
-  form.name = ''
-  form.category = ''
-  form.video_url = ''
+const openCreate = () => {
+  createError.value = ''
+  showCreate.value = true
 }
 
-const remove = async (id: number) => {
+const openDetails = (exercise: any) => {
+  selected.value = exercise
+}
+
+const create = async (payload: any) => {
+  creating.value = true
+  createError.value = ''
+  try {
+    await teacher.createExercise(payload)
+    showCreate.value = false
+  } catch (error: any) {
+    const message = error?.response?.data?.message || 'Nao foi possivel cadastrar o exercicio.'
+    createError.value = message
+  } finally {
+    creating.value = false
+  }
+}
+
+const deleteExercise = async (id: number) => {
   await teacher.deleteExercise(id)
+  selected.value = null
 }
 
-onMounted(() => {
-  teacher.loadExercises()
+onMounted(async () => {
+  await teacher.loadExercises()
 })
 </script>

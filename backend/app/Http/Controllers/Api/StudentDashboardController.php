@@ -13,6 +13,6 @@ class StudentDashboardController extends Controller
     {
         $data = $service->build(Auth::id());
 
-        return response()->json($data);
+        return response()->json(array_merge(['status' => 'success'], $data));
     }
 }

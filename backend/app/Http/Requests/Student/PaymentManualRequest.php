@@ -21,6 +21,7 @@ class PaymentManualRequest extends FormRequest
             'amount_cents' => ['required', 'integer', 'min:1'],
             'method' => ['required', new Enum(PaymentMethod::class)],
             'receipt_url' => ['nullable', 'url', 'max:2048'],
+            'description' => ['nullable', 'string', 'max:255'],
         ];
     }
 }

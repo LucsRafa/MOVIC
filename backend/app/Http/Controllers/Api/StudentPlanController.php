@@ -16,6 +16,9 @@ class StudentPlanController extends Controller
             ->with(['days.items.exercise'])
             ->first();
 
-        return response()->json(['plan' => $plan]);
+        return response()->json([
+            'status' => 'success',
+            'plan' => $plan,
+        ]);
     }
 }

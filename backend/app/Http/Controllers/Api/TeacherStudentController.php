@@ -20,7 +20,11 @@ class TeacherStudentController extends Controller
     {
         $invite = $service->createInvite(Auth::user(), $request->validated()['email']);
 
-        return response()->json(['invite' => $invite], 201);
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Convite criado com sucesso.',
+            'invite' => $invite,
+        ], 201);
     }
 
     public function index(): JsonResponse
@@ -32,7 +36,10 @@ class TeacherStudentController extends Controller
 
         $students = $teacher->students()->with('studentProfile')->get();
 
-        return response()->json(['students' => $students]);
+        return response()->json([
+            'status' => 'success',
+            'students' => $students,
+        ]);
     }
 
     public function approve(ApproveStudentRequest $request, int $id): JsonResponse
@@ -55,6 +62,10 @@ class TeacherStudentController extends Controller
             'approved_at' => Carbon::now(),
         ]);
 
-        return response()->json(['student' => $student->load('studentProfile')]);
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Aluno aprovado com sucesso.',
+            'student' => $student->load('studentProfile'),
+        ]);
     }
 }

@@ -21,6 +21,10 @@ class WorkoutDayController extends Controller
             'notes' => $request->validated()['notes'] ?? null,
         ]);
 
-        return response()->json(['day' => $day], 201);
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Dia de treino criado com sucesso.',
+            'day' => $day,
+        ], 201);
     }
 }
