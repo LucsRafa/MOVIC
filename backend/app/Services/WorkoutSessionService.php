@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\WorkoutSessionStatus;
 use App\Models\User;
 use App\Models\WorkoutDay;
 use App\Models\WorkoutSession;
@@ -29,6 +30,21 @@ class WorkoutSessionService
                 'started_at' => Carbon::now(),
             ])->save();
         }
+
+        return $session->fresh();
+    }
+
+    public function reopenSession(WorkoutSession $session): WorkoutSession
+    {
+        if ($session->status !== WorkoutSessionStatus::Completed && !$session->finished_at) {
+            return $session;
+        }
+
+        $session->forceFill([
+            'status' => WorkoutSessionStatus::InProgress,
+            'finished_at' => null,
+            'started_at' => $session->started_at ?? Carbon::now(),
+        ])->save();
 
         return $session->fresh();
     }

@@ -61,11 +61,20 @@ export const useStudentStore = defineStore('student', {
         workout_item_id: workoutItemId,
         is_checked: isChecked
       })
+
+      this.session = data.session?.status === 'completed' ? null : data.session || this.session
       return data.check
     },
     async toggleWorkoutItem(workoutDayId: number, workoutItemId: number, sessionDate?: string) {
       const payload = sessionDate ? { session_date: sessionDate } : {}
-      const { data } = await api.post(`/workout-items/${workoutItemId}/toggle`, payload)
+      const { data } = await api.post(`/workout-items/${workoutItemId}/toggle`, payload, {
+        skipErrorToast: true
+      } as any)
+
+      if (this.dashboard?.today?.workout_day?.id === workoutDayId) {
+        this.dashboard.today.session = data.session || this.dashboard.today.session || null
+      }
+
       this.session = data.session?.status === 'completed' ? null : data.session || this.session
 
       const completedAt = data.check?.completed_at ?? data.check?.checked_at ?? null

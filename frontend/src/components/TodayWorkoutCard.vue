@@ -1,22 +1,22 @@
 <template>
-  <div class="rounded-2xl bg-white/5 p-4">
+  <div class="max-w-full overflow-hidden rounded-2xl bg-white/5 p-4">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div class="min-w-0">
         <p class="text-sm text-white/70">{{ dayName }}</p>
         <h3 class="text-lg font-semibold text-white">{{ title }}</h3>
-        <p class="text-xs text-white/50" v-if="subtitle">{{ subtitle }}</p>
+        <p v-if="subtitle" class="text-xs text-white/50">{{ subtitle }}</p>
       </div>
-      <span class="w-fit rounded-full bg-sky-500/20 px-3 py-1 text-xs text-sky-200">
+      <span class="w-fit max-w-full rounded-full bg-sky-500/20 px-3 py-1 text-xs text-sky-200">
         {{ items.length }} exercícios
       </span>
     </div>
 
     <div class="mt-4">
       <div class="flex items-center justify-between text-xs text-white/60">
-        <span>Progresso do Treino</span>
+        <span>Progresso do treino</span>
         <span>{{ progress }}%</span>
       </div>
-      <div class="mt-2 h-2 w-full rounded-full bg-white/10">
+      <div class="mt-2 h-2 w-full max-w-full overflow-hidden rounded-full bg-white/10">
         <div class="h-2 rounded-full bg-emerald-400" :style="{ width: `${progress}%` }"></div>
       </div>
     </div>

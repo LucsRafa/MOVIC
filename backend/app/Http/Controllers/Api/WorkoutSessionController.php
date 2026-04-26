@@ -7,10 +7,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Student\WorkoutItemCheckRequest;
 use App\Http\Requests\Student\WorkoutSessionFinishRequest;
 use App\Http\Requests\Student\WorkoutSessionStartRequest;
+use App\Models\WorkoutDay;
 use App\Models\WorkoutItem;
 use App\Models\WorkoutItemCheck;
 use App\Models\WorkoutSession;
-use App\Models\WorkoutDay;
 use App\Services\WorkoutSessionService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -43,12 +43,7 @@ class WorkoutSessionController extends Controller
             ], 422);
         }
 
-        if ($session->status === WorkoutSessionStatus::Completed) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Este treino já foi finalizado.',
-            ], 422);
-        }
+        $session = $service->reopenSession($session);
 
         $check = WorkoutItemCheck::firstOrNew([
             'workout_session_id' => $session->id,
@@ -88,16 +83,13 @@ class WorkoutSessionController extends Controller
         ]);
     }
 
-    public function check(WorkoutItemCheckRequest $request, WorkoutSession $session): JsonResponse
-    {
+    public function check(
+        WorkoutItemCheckRequest $request,
+        WorkoutSession $session,
+        WorkoutSessionService $service
+    ): JsonResponse {
         $this->authorize('update', $session);
-
-        if ($session->status === WorkoutSessionStatus::Completed) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Este treino já foi finalizado.',
-            ], 422);
-        }
+        $session = $service->reopenSession($session);
 
         $data = $request->validated();
         $item = WorkoutItem::findOrFail($data['workout_item_id']);
@@ -122,6 +114,7 @@ class WorkoutSessionController extends Controller
 
         return response()->json([
             'status' => 'success',
+            'session' => $session->fresh(),
             'check' => $this->serializeCheck($check->fresh()),
         ]);
     }

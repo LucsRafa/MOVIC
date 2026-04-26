@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen overflow-x-hidden bg-gradient-to-b from-[#0b1020] via-[#101a2e] to-[#0b1325] text-white">
     <div class="mx-auto w-full max-w-6xl px-4 pb-8 pt-4 sm:px-6 sm:pb-10 sm:pt-6">
-      <TeacherHeaderBar :name="userName" @settings="showSettings = true" @logout="logout" />
+      <TeacherHeaderBar :name="userName" :avatar-url="auth.user?.avatar_url" @settings="showSettings = true" @logout="logout" />
       <TeacherMenuBar :requests="requestsBadge" />
       <div class="mt-6 max-w-full">
         <RouterView />
@@ -28,11 +28,13 @@ import SettingsModal from '../components/SettingsModal.vue'
 import api from '../api/http'
 import { useAuthStore } from '../stores/auth'
 import { useTeacherStore } from '../stores/teacher'
+import { useToastStore } from '../stores/toast'
 
 const showSettings = ref(false)
 const auth = useAuthStore()
 const teacher = useTeacherStore()
 const router = useRouter()
+const toast = useToastStore()
 
 const userName = computed(() => auth.user?.name || 'Professor')
 const requestsBadge = computed(() => teacher.dashboard?.badges?.requests ?? 0)
@@ -51,6 +53,7 @@ const uploadAvatar = async (file: File) => {
   form.append('avatar', file)
   await api.post('/user/avatar', form)
   await auth.fetchMe()
+  toast.push('Foto de perfil atualizada com sucesso.', 'success')
 }
 
 const logout = async () => {

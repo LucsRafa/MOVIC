@@ -26,21 +26,22 @@
       <p class="text-sm text-white/60">Gerencie suas informações de conta</p>
 
       <div class="mt-5">
-        <h4 class="text-sm font-semibold text-white/80">Foto de Perfil</h4>
+        <h4 class="text-sm font-semibold text-white/80">Foto de perfil</h4>
         <div class="mt-3 flex flex-col items-center gap-3">
-          <div class="flex h-20 w-20 items-center justify-center rounded-full bg-emerald-500 text-xl font-semibold">
-            {{ initials }}
+          <div class="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full bg-emerald-500 text-xl font-semibold text-white">
+            <img v-if="resolvedAvatarUrl" :src="resolvedAvatarUrl" alt="Foto de perfil" class="h-full w-full object-cover" />
+            <span v-else>{{ initials }}</span>
           </div>
-          <label class="w-full cursor-pointer rounded-xl bg-fuchsia-600 px-4 py-3 text-center text-sm font-semibold">
-            Escolher Foto
-            <input class="hidden" type="file" accept="image/png,image/jpeg" @change="onFile" />
+          <label class="w-full cursor-pointer rounded-xl bg-fuchsia-600 px-4 py-3 text-center text-sm font-semibold hover:bg-fuchsia-500">
+            Escolher foto
+            <input class="hidden" type="file" accept=".jpg,.jpeg,.png,image/jpeg,image/png" @change="onFile" />
           </label>
-          <p class="text-xs text-white/50">Formatos aceitos: JPG, PNG (Max: 5MB)</p>
+          <p class="text-xs text-white/50">Formatos aceitos: JPG, JPEG e PNG até 5 MB</p>
         </div>
       </div>
 
       <div class="mt-6 border-t border-white/10 pt-4">
-        <h4 class="text-sm font-semibold text-white/80">Alterar Nome</h4>
+        <h4 class="text-sm font-semibold text-white/80">Alterar nome</h4>
         <input v-model="name" class="mt-2 w-full rounded-xl bg-white/5 px-4 py-3 text-sm" />
         <button class="mt-3 w-full rounded-xl bg-orange-500 px-4 py-3 text-sm font-semibold hover:bg-orange-400" @click="updateName">
           Atualizar nome
@@ -71,6 +72,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { resolveMediaUrl } from '../utils/media'
 
 const props = defineProps<{ user: any }>()
 const emit = defineEmits(['close', 'uploadAvatar', 'updateProfile', 'updatePassword'])
@@ -82,13 +84,21 @@ const newPassword = ref('')
 const confirmPassword = ref('')
 
 const initials = computed(() => {
-  const parts = (props.user?.name || '').split(' ')
+  const parts = (props.user?.name || '').trim().split(/\s+/).filter(Boolean)
   return parts.length ? (parts[0][0] + (parts[1]?.[0] || '')).toUpperCase() : 'U'
 })
 
+const resolvedAvatarUrl = computed(() => resolveMediaUrl(props.user?.avatar_url))
+
 const onFile = (event: Event) => {
-  const file = (event.target as HTMLInputElement).files?.[0]
-  if (file) emit('uploadAvatar', file)
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+
+  if (file) {
+    emit('uploadAvatar', file)
+  }
+
+  input.value = ''
 }
 
 const updateName = () => emit('updateProfile', { name: name.value })

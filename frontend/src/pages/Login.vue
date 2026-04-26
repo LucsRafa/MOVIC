@@ -4,7 +4,7 @@
       <img
         alt="Avatar"
         class="h-full w-full object-cover"
-        src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=200&auto=format&fit=crop"
+        src="/img/perfil.jpg"
       />
     </div>
     <p class="mt-3 text-sm text-slate-500">@jefftrainer</p>
@@ -104,11 +104,32 @@
     </div>
 
     <label class="flex items-center gap-3 text-left text-sm text-slate-600">
-      <input
-        v-model="rememberLogin"
-        class="h-4 w-4 rounded border-slate-300 text-[#27AE60] focus:ring-[#27AE60]"
-        type="checkbox"
-      />
+      <span class="relative flex h-4 w-4 items-center justify-center">
+        <input
+          v-model="rememberLogin"
+          class="peer h-4 w-4 appearance-none rounded border border-slate-300 bg-white transition-colors focus:outline-none focus:ring-2"
+          :class="
+            role === 'teacher'
+              ? 'checked:border-[#2C3E60] checked:bg-[#2C3E60] focus:ring-[#2C3E60]/30'
+              : 'checked:border-[#27AE60] checked:bg-[#27AE60] focus:ring-[#27AE60]/30'
+          "
+          type="checkbox"
+        />
+        <svg
+          class="pointer-events-none absolute h-3 w-3 text-white opacity-0 transition-opacity peer-checked:opacity-100"
+          viewBox="0 0 20 20"
+          fill="none"
+          aria-hidden="true"
+        >
+          <path
+            d="m5 10 3 3 7-7"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+          />
+        </svg>
+      </span>
       <span>Lembrar meu login</span>
     </label>
 

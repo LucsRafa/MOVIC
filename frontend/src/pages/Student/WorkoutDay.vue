@@ -12,7 +12,7 @@
         :progress="progressPercent"
         :show-finish="!isWorkoutCompleted"
         :is-finishing="finishing"
-        :disable-actions="isWorkoutCompleted || finishing"
+        :disable-actions="finishing"
         @toggle="toggleItem"
         @video="openVideo"
         @finish="finish"
@@ -118,7 +118,7 @@ const updateWorkoutProgress = () => {
 }
 
 const toggleItem = async (item: any) => {
-  if (isWorkoutCompleted.value || finishing.value) {
+  if (finishing.value) {
     return
   }
 
@@ -137,10 +137,13 @@ const toggleItem = async (item: any) => {
     item.completed_at = check?.completed_at ?? check?.checked_at ?? null
     item.is_checked = Boolean(item.completed_at)
     updateWorkoutProgress()
-  } catch (e) {
+  } catch {
     item.completed_at = previousCompletedAt
     item.is_checked = Boolean(previousCompletedAt)
     updateWorkoutProgress()
+
+    await Promise.allSettled([student.fetchDashboard(), student.loadActivePlan()])
+    toast.push('Erro ao atualizar exercício. Tente novamente.', 'error')
   }
 }
 
@@ -156,7 +159,7 @@ const finish = async () => {
     await student.fetchDashboard()
     toast.push('Treino finalizado com sucesso! 💪', 'success')
     await router.push('/student/dashboard')
-  } catch (error) {
+  } catch {
     toast.push('Erro ao finalizar treino. Tente novamente.', 'error')
   } finally {
     finishing.value = false

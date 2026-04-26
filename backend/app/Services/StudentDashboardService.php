@@ -228,11 +228,15 @@ class StudentDashboardService
             return null;
         }
 
-        $avg = $sessions->avg(function ($session) {
-            return Carbon::parse($session->finished_at)->diffInMinutes($session->started_at);
+        $avgSeconds = $sessions->avg(function (WorkoutSession $session) {
+            return max(0, $session->started_at->diffInRealSeconds($session->finished_at));
         });
 
-        return $avg ? (int) round($avg) : null;
+        if ($avgSeconds === null) {
+            return null;
+        }
+
+        return max(1, (int) round($avgSeconds / 60));
     }
 
     private function monthlyFrequencyPercent(int $studentId, int $weeklyWorkoutsTotal): int

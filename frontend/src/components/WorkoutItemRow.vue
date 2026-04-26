@@ -27,11 +27,27 @@
         </p>
       </div>
       <button
-        class="mt-1 h-8 w-8 shrink-0 rounded-full border disabled:opacity-40"
+        class="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border disabled:opacity-40"
         :class="item.is_checked ? 'border-emerald-400 bg-emerald-400/20' : 'border-white/30'"
         :disabled="disabled"
         @click="$emit('toggle', item)"
-      ></button>
+      >
+        <svg
+          v-if="item.is_checked"
+          class="h-4 w-4 text-emerald-200"
+          viewBox="0 0 20 20"
+          fill="none"
+          aria-hidden="true"
+        >
+          <path
+            d="m5 10 3 3 7-7"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+          />
+        </svg>
+      </button>
     </div>
   </div>
 </template>

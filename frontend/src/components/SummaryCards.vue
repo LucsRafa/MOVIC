@@ -1,9 +1,9 @@
 <template>
-  <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+  <div class="grid max-w-full gap-4 sm:grid-cols-2 xl:grid-cols-4">
     <div
       v-for="card in cards"
       :key="card.label"
-      class="rounded-2xl border border-white/10 bg-white/5 p-4 shadow-inner"
+      class="max-w-full overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-4 shadow-inner"
     >
       <div class="flex items-center gap-4">
         <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-white/5">
@@ -12,7 +12,7 @@
 
         <div class="min-w-0">
           <p class="text-sm text-white/60">{{ card.label }}</p>
-          <p class="mt-1 text-xl font-semibold text-white">{{ card.value }}</p>
+          <p class="mt-1 break-words text-xl font-semibold text-white">{{ card.value }}</p>
         </div>
       </div>
     </div>
@@ -31,8 +31,10 @@ import { computed } from 'vue'
 const props = defineProps<{ summary: any }>()
 
 const safeAverageMinutes = computed(() => {
-  const value = Number(props.summary?.avg_minutes ?? props.summary?.avg_workout_minutes ?? 0)
-  return Number.isFinite(value) && value > 0 ? Math.max(0, value) : null
+  const rawValue = props.summary?.avg_minutes ?? props.summary?.avg_workout_minutes
+  const value = Number(rawValue)
+
+  return Number.isFinite(value) && value >= 0 ? Math.max(0, Math.round(value)) : null
 })
 
 const cards = computed(() => [
@@ -56,7 +58,7 @@ const cards = computed(() => [
   },
   {
     label: 'Tempo médio',
-    value: safeAverageMinutes.value ? `${safeAverageMinutes.value} min` : '-',
+    value: safeAverageMinutes.value !== null ? `${safeAverageMinutes.value} min` : '-',
     icon: ClockIcon,
     iconColor: 'text-fuchsia-400'
   }

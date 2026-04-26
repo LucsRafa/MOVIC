@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-gradient-to-b from-[#0b1020] via-[#111a2e] to-[#0b1325] px-4 py-6 text-white">
     <div class="mx-auto max-w-4xl space-y-6">
-      <HeaderBar :name="userName" @settings="showSettings = true" @logout="logout" />
+      <HeaderBar :name="userName" :avatar-url="dashboard?.user?.avatar_url" @settings="showSettings = true" @logout="logout" />
 
       <TrialBanner v-if="showTrial" :date="dashboard.subscription?.expires_at" />
 
@@ -16,7 +16,7 @@
         :progress="dashboard.today.workout_day.progress_percent"
         :show-finish="!isWorkoutCompleted"
         :is-finishing="finishing"
-        :disable-actions="isWorkoutCompleted || finishing"
+        :disable-actions="finishing"
         @toggle="toggleItem"
         @video="openVideo"
         @finish="finish"
@@ -32,28 +32,25 @@
         @receipts="openReceipts"
       />
 
-      <div class="rounded-2xl bg-white/5 p-4">
+      <div class="max-w-full overflow-hidden rounded-2xl bg-white/5 p-4">
         <h3 class="text-lg font-semibold">Estatísticas</h3>
         <div class="mt-3 space-y-3 text-sm text-white/70">
           <div>
-            <div class="flex justify-between">
+            <div class="flex flex-wrap items-center justify-between gap-2">
               <span>Frequência mensal</span>
-              <span>{{ dashboard?.week?.monthly_frequency_percent ?? 0 }}%</span>
+              <span>{{ monthlyFrequencyPercent }}%</span>
             </div>
-            <div class="mt-2 h-2 w-full rounded-full bg-white/10">
-              <div
-                class="h-2 rounded-full bg-emerald-400"
-                :style="{ width: `${dashboard?.week?.monthly_frequency_percent ?? 0}%` }"
-              ></div>
+            <div class="mt-2 h-2 w-full max-w-full overflow-hidden rounded-full bg-white/10">
+              <div class="h-2 rounded-full bg-emerald-400" :style="{ width: `${monthlyFrequencyPercent}%` }"></div>
             </div>
           </div>
           <div>
-            <div class="flex justify-between">
-              <span>Meta Semanal</span>
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <span>Meta semanal</span>
               <span>{{ dashboard?.week?.weekly_goal?.done ?? 0 }}/{{ dashboard?.week?.weekly_goal?.total ?? 0 }} treinos</span>
             </div>
-            <div class="mt-2 h-2 w-full rounded-full bg-white/10">
-              <div class="h-2 rounded-full bg-sky-400" :style="{ width: weeklyGoalPercent + '%' }"></div>
+            <div class="mt-2 h-2 w-full max-w-full overflow-hidden rounded-full bg-white/10">
+              <div class="h-2 rounded-full bg-sky-400" :style="{ width: `${weeklyGoalPercent}%` }"></div>
             </div>
           </div>
         </div>
@@ -139,7 +136,12 @@ const isWorkoutCompleted = computed(() => dashboard.value?.today?.session?.statu
 const weeklyGoalPercent = computed(() => {
   const done = dashboard.value?.week?.weekly_goal?.done || 0
   const total = dashboard.value?.week?.weekly_goal?.total || 0
-  return total ? Math.round((done / total) * 100) : 0
+  return total ? Math.min(100, Math.max(0, Math.round((done / total) * 100))) : 0
+})
+
+const monthlyFrequencyPercent = computed(() => {
+  const value = dashboard.value?.week?.monthly_frequency_percent || 0
+  return Math.min(100, Math.max(0, value))
 })
 
 const dayLabel = computed(() => {
@@ -158,7 +160,7 @@ const updateWorkoutProgress = () => {
 }
 
 const toggleItem = async (item: any) => {
-  if (isWorkoutCompleted.value || finishing.value) {
+  if (finishing.value) {
     return
   }
 
@@ -178,10 +180,13 @@ const toggleItem = async (item: any) => {
     item.completed_at = check?.completed_at ?? check?.checked_at ?? null
     item.is_checked = Boolean(item.completed_at)
     updateWorkoutProgress()
-  } catch (e) {
+  } catch {
     item.completed_at = previousCompletedAt
     item.is_checked = Boolean(previousCompletedAt)
     updateWorkoutProgress()
+
+    await Promise.allSettled([student.fetchDashboard(), student.loadActivePlan()])
+    toast.push('Erro ao atualizar exercício. Tente novamente.', 'error')
   }
 }
 
@@ -197,7 +202,7 @@ const finish = async () => {
     await student.fetchDashboard()
     toast.push('Treino finalizado com sucesso! 💪', 'success')
     await router.push('/student/dashboard')
-  } catch (error) {
+  } catch {
     toast.push('Erro ao finalizar treino. Tente novamente.', 'error')
   } finally {
     finishing.value = false
@@ -248,6 +253,7 @@ const uploadAvatar = async (file: File) => {
   form.append('avatar', file)
   await api.post('/user/avatar', form)
   await student.fetchDashboard()
+  toast.push('Foto de perfil atualizada com sucesso.', 'success')
 }
 
 const logout = async () => {

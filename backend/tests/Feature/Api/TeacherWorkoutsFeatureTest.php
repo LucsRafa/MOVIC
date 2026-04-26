@@ -125,4 +125,48 @@ class TeacherWorkoutsFeatureTest extends TestCase
             Carbon::setTestNow();
         }
     }
+
+    public function test_student_can_reopen_a_finished_session_by_toggling_an_item(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-04-25 10:00:00'));
+
+        try {
+            $teacher = $this->createTeacher();
+            $student = $this->actAsApiUser($this->createStudent());
+            $this->linkTeacherAndStudent($teacher, $student);
+
+            $exercise = $this->createExercise($teacher);
+            $plan = $this->createWorkoutPlan($teacher, $student);
+            $day = $this->createWorkoutDay($plan, [
+                'weekday' => Carbon::now()->dayOfWeek,
+            ]);
+            $item = $this->createWorkoutItem($day, $exercise);
+
+            $toggleResponse = $this->postJson("/api/workout-items/{$item->id}/toggle");
+            $sessionId = $toggleResponse->json('session.id');
+
+            Carbon::setTestNow(Carbon::parse('2026-04-25 10:20:00'));
+
+            $this->postJson("/api/student/sessions/{$sessionId}/finish")
+                ->assertOk()
+                ->assertJsonPath('status', 'success');
+
+            Carbon::setTestNow(Carbon::parse('2026-04-25 10:25:00'));
+
+            $this->postJson("/api/workout-items/{$item->id}/toggle")
+                ->assertOk()
+                ->assertJsonPath('status', 'success')
+                ->assertJsonPath('session.id', $sessionId)
+                ->assertJsonPath('session.status', WorkoutSessionStatus::InProgress->value)
+                ->assertJsonPath('check.is_checked', false);
+
+            $this->assertDatabaseHas('workout_sessions', [
+                'id' => $sessionId,
+                'status' => WorkoutSessionStatus::InProgress->value,
+                'finished_at' => null,
+            ]);
+        } finally {
+            Carbon::setTestNow();
+        }
+    }
 }
