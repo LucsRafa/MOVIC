@@ -87,7 +87,7 @@ class TeacherStudentsController extends Controller
         if (!$isLinked) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Aluno nao pertence a este professor.',
+                'message' => 'Aluno não pertence a este professor.',
             ], 403);
         }
 
@@ -116,7 +116,7 @@ class TeacherStudentsController extends Controller
         if (!$isLinked) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Aluno nao pertence a este professor.',
+                'message' => 'Aluno não pertence a este professor.',
             ], 403);
         }
 
@@ -148,7 +148,7 @@ class TeacherStudentsController extends Controller
         if (!$isLinked) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Aluno nao pertence a este professor.',
+                'message' => 'Aluno não pertence a este professor.',
             ], 403);
         }
 
@@ -158,13 +158,13 @@ class TeacherStudentsController extends Controller
         if ($status !== Password::RESET_LINK_SENT) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Nao foi possivel enviar o link de reset de senha.',
+                'message' => 'Não foi possível enviar o link de redefinição de senha.',
             ], 422);
         }
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Link de redefinicao enviado para o aluno.',
+            'message' => 'Link de redefinição enviado para o aluno.',
         ]);
     }
 

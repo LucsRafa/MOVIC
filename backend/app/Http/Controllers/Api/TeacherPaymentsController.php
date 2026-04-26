@@ -33,10 +33,11 @@ class TeacherPaymentsController extends Controller
         $studentIds = TeacherStudent::where('teacher_id', $teacher->id)->pluck('student_id');
         $students = User::whereIn('id', $studentIds)->get();
 
-        $month = Carbon::now()->format('Y-m');
+        $now = Carbon::now();
         $paidMap = Payment::whereIn('student_id', $studentIds)
             ->where('status', PaymentStatus::Paid->value)
-            ->whereRaw("DATE_FORMAT(paid_at, '%Y-%m') = ?", [$month])
+            ->whereYear('paid_at', $now->year)
+            ->whereMonth('paid_at', $now->month)
             ->get()
             ->groupBy('student_id');
 
@@ -81,10 +82,10 @@ class TeacherPaymentsController extends Controller
             ->where('student_id', $data['student_id'])
             ->exists();
 
-        if (!$linked) {
+        if (! $linked) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Aluno nao pertence a este professor.',
+                'message' => 'Aluno não pertence a este professor.',
             ], 403);
         }
 
@@ -127,10 +128,10 @@ class TeacherPaymentsController extends Controller
             ->where('student_id', $payment->student_id)
             ->exists();
 
-        if (!$linked) {
+        if (! $linked) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Pagamento nao pertence a este professor.',
+                'message' => 'Pagamento não pertence a este professor.',
             ], 403);
         }
 
@@ -157,14 +158,18 @@ class TeacherPaymentsController extends Controller
             ->where('student_id', $payment->student_id)
             ->exists();
 
-        if (!$linked) {
+        if (! $linked) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Pagamento nao pertence a este professor.',
+                'message' => 'Pagamento não pertence a este professor.',
             ], 403);
         }
 
-        $email = request()->input('email') ?: $payment->student?->email;
+        $data = request()->validate([
+            'email' => ['nullable', 'email'],
+        ]);
+
+        $email = $data['email'] ?? $payment->student?->email;
         $pdf = $pdfService->generate($payment);
 
         Mail::raw('Segue o comprovante de pagamento.', function ($message) use ($email, $pdf) {

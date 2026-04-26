@@ -15,15 +15,26 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->append(\Illuminate\Http\Middleware\HandleCors::class);
+        $middleware->alias([
+            'auth' => \App\Http\Middleware\Authenticate::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->render(function (\Illuminate\Validation\ValidationException $e, $request) {
             if ($request->is('api/*')) {
+                Log::warning('API validation error', [
+                    'path' => $request->path(),
+                    'user_id' => $request->user()?->id,
+                    'errors' => $e->errors(),
+                    'has_files' => $request->files->count() > 0,
+                    'content_length' => $request->server('CONTENT_LENGTH'),
+                ]);
                 return response()->json([
                     'status' => 'error',
                     'error' => 'validation_error',
-                    'message' => 'Dados invalidos.',
+                    'message' => 'Dados inválidos.',
                     'details' => $e->errors(),
+                    'errors' => $e->errors(),
                 ], 422);
             }
         });
@@ -33,7 +44,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 return response()->json([
                     'status' => 'error',
                     'error' => 'unauthenticated',
-                    'message' => 'Usuario nao autenticado. Envie o token.',
+                    'message' => 'Usuário não autenticado. Envie o token.',
                 ], 401);
             }
         });
@@ -43,7 +54,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 return response()->json([
                     'status' => 'error',
                     'error' => 'forbidden',
-                    'message' => 'Voce nao tem permissao para esta acao.',
+                    'message' => 'Você não tem permissão para esta ação.',
                 ], 403);
             }
         });
@@ -53,7 +64,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 return response()->json([
                     'status' => 'error',
                     'error' => 'not_found',
-                    'message' => 'Recurso nao encontrado.',
+                    'message' => 'Recurso não encontrado.',
                 ], 404);
             }
         });
@@ -63,7 +74,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 return response()->json([
                     'status' => 'error',
                     'error' => 'route_not_found',
-                    'message' => 'Rota nao encontrada.',
+                    'message' => 'Rota não encontrada.',
                 ], 404);
             }
         });
@@ -73,7 +84,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 return response()->json([
                     'status' => 'error',
                     'error' => 'method_not_allowed',
-                    'message' => 'Metodo HTTP nao permitido para esta rota.',
+                    'message' => 'Método HTTP não permitido para esta rota.',
                 ], 405);
             }
         });

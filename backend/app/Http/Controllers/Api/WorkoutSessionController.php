@@ -18,13 +18,66 @@ use Illuminate\Support\Facades\Auth;
 
 class WorkoutSessionController extends Controller
 {
+    public function toggle(int $itemId, WorkoutSessionService $service): JsonResponse
+    {
+        $data = request()->validate([
+            'session_date' => ['nullable', 'date'],
+        ]);
+
+        $item = WorkoutItem::with('workoutDay.workoutPlan')->findOrFail($itemId);
+        $day = $item->workoutDay;
+
+        if (!$day || !$day->workoutPlan || $day->workoutPlan->student_id !== Auth::id()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Acesso não permitido para este treino.',
+            ], 403);
+        }
+
+        $session = $service->startSession(Auth::user(), $day, $data['session_date'] ?? null);
+
+        if ($session->workout_day_id !== $item->workout_day_id) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Já existe outro treino iniciado para esta data.',
+            ], 422);
+        }
+
+        if ($session->status === WorkoutSessionStatus::Completed) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Este treino já foi finalizado.',
+            ], 422);
+        }
+
+        $check = WorkoutItemCheck::firstOrNew([
+            'workout_session_id' => $session->id,
+            'workout_item_id' => $item->id,
+        ]);
+
+        $isChecked = !$check->exists || !$check->is_checked;
+        $check->fill([
+            'is_checked' => $isChecked,
+            'checked_at' => $isChecked ? Carbon::now() : null,
+        ])->save();
+
+        return response()->json([
+            'status' => 'success',
+            'session' => $session->fresh(),
+            'check' => $this->serializeCheck($check->fresh()),
+        ]);
+    }
+
     public function start(WorkoutSessionStartRequest $request, WorkoutSessionService $service): JsonResponse
     {
         $data = $request->validated();
         $day = WorkoutDay::with('workoutPlan')->findOrFail($data['workout_day_id']);
 
         if ($day->workoutPlan->student_id !== Auth::id()) {
-            return response()->json(['message' => 'Not allowed'], 403);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Acesso não permitido para este treino.',
+            ], 403);
         }
 
         $session = $service->startSession(Auth::user(), $day, $data['session_date'] ?? null);
@@ -39,11 +92,21 @@ class WorkoutSessionController extends Controller
     {
         $this->authorize('update', $session);
 
+        if ($session->status === WorkoutSessionStatus::Completed) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Este treino já foi finalizado.',
+            ], 422);
+        }
+
         $data = $request->validated();
         $item = WorkoutItem::findOrFail($data['workout_item_id']);
 
         if ($item->workout_day_id !== $session->workout_day_id) {
-            return response()->json(['message' => 'Item not in session day'], 422);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'O exercício não pertence a este treino.',
+            ], 422);
         }
 
         $check = WorkoutItemCheck::updateOrCreate(
@@ -59,7 +122,7 @@ class WorkoutSessionController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'check' => $check,
+            'check' => $this->serializeCheck($check->fresh()),
         ]);
     }
 
@@ -68,6 +131,7 @@ class WorkoutSessionController extends Controller
         $this->authorize('update', $session);
 
         $session->update([
+            'started_at' => $session->started_at ?? Carbon::now(),
             'status' => WorkoutSessionStatus::Completed,
             'finished_at' => Carbon::now(),
         ]);
@@ -77,5 +141,19 @@ class WorkoutSessionController extends Controller
             'message' => 'Treino finalizado com sucesso.',
             'session' => $session->fresh(),
         ]);
+    }
+
+    private function serializeCheck(WorkoutItemCheck $check): array
+    {
+        $completedAt = $check->checked_at?->toIso8601String();
+
+        return [
+            'id' => $check->id,
+            'workout_session_id' => $check->workout_session_id,
+            'workout_item_id' => $check->workout_item_id,
+            'is_checked' => $check->is_checked,
+            'checked_at' => $completedAt,
+            'completed_at' => $completedAt,
+        ];
     }
 }

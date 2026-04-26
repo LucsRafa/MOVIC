@@ -9,7 +9,7 @@
     </div>
     <p class="mt-3 text-sm text-slate-500">@jefftrainer</p>
     <h1 class="mt-3 text-2xl font-semibold text-[#2C3E60]">Bem-vindo</h1>
-    <p class="mt-1 text-sm text-slate-500">Faca login para continuar</p>
+    <p class="mt-1 text-sm text-slate-500">Faça login para continuar</p>
   </div>
 
   <div class="mt-6 rounded-full bg-slate-100 p-1">
@@ -33,24 +33,43 @@
     <p v-if="errorMessage" class="rounded-xl bg-red-50 px-4 py-2 text-sm text-red-600">
       {{ errorMessage }}
     </p>
+
     <label class="block text-left text-sm font-medium text-slate-600">Email:</label>
     <div class="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-      <span class="text-slate-400">@</span>
+      <svg class="h-5 w-5 shrink-0 text-slate-400" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path
+          d="M3 6.75 10.94 12a2 2 0 0 0 2.12 0L21 6.75M4.5 19.5h15A1.5 1.5 0 0 0 21 18V6A1.5 1.5 0 0 0 19.5 4.5h-15A1.5 1.5 0 0 0 3 6v12A1.5 1.5 0 0 0 4.5 19.5Z"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="1.5"
+        />
+      </svg>
       <input
         v-model="email"
         class="w-full bg-transparent text-sm outline-none"
         type="email"
+        autocomplete="email"
         placeholder="seu@email.com"
       />
     </div>
 
     <label class="block text-left text-sm font-medium text-slate-600">Senha:</label>
     <div class="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-      <span class="text-slate-400">*</span>
+      <svg class="h-5 w-5 shrink-0 text-slate-400" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path
+          d="M16.5 10.5V8.25a4.5 4.5 0 1 0-9 0v2.25M6.75 19.5h10.5A1.5 1.5 0 0 0 18.75 18V12A1.5 1.5 0 0 0 17.25 10.5H6.75A1.5 1.5 0 0 0 5.25 12v6A1.5 1.5 0 0 0 6.75 19.5Z"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="1.5"
+        />
+      </svg>
       <input
         v-model="password"
         class="w-full bg-transparent text-sm outline-none"
         :type="showPassword ? 'text' : 'password'"
+        autocomplete="current-password"
         placeholder="******"
       />
       <button
@@ -84,6 +103,15 @@
       </button>
     </div>
 
+    <label class="flex items-center gap-3 text-left text-sm text-slate-600">
+      <input
+        v-model="rememberLogin"
+        class="h-4 w-4 rounded border-slate-300 text-[#27AE60] focus:ring-[#27AE60]"
+        type="checkbox"
+      />
+      <span>Lembrar meu login</span>
+    </label>
+
     <RouterLink
       class="block text-right text-sm font-semibold"
       :class="role === 'teacher' ? 'text-[#2C3E60] hover:text-[#1a2332]' : 'text-[#27AE60] hover:text-[#229954]'"
@@ -93,15 +121,16 @@
     </RouterLink>
 
     <button
-      class="w-full rounded-xl px-4 py-3 text-sm font-semibold text-white shadow"
+      class="w-full rounded-xl px-4 py-3 text-sm font-semibold text-white shadow transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60"
       :class="
         role === 'teacher'
           ? 'bg-gradient-to-r from-[#2C3E60] to-[#1a2332]'
           : 'bg-gradient-to-r from-[#27AE60] to-[#229954]'
       "
       type="submit"
+      :disabled="loading"
     >
-      Entrar
+      {{ loading ? 'Entrando...' : 'Entrar' }}
     </button>
   </form>
 
@@ -118,34 +147,80 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { useRouter, RouterLink } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import { extractApiErrorMessage } from '../utils/apiError'
+
+const REMEMBERED_EMAIL_KEY = 'movic.remembered_email'
 
 const email = ref('')
 const password = ref('')
 const showPassword = ref(false)
+const rememberLogin = ref(false)
 const role = ref<'teacher' | 'student'>('student')
 const auth = useAuthStore()
 const router = useRouter()
 const errorMessage = ref('')
+const loading = ref(false)
+
+watch(rememberLogin, (value) => {
+  if (!value) {
+    localStorage.removeItem(REMEMBERED_EMAIL_KEY)
+  }
+})
+
+onMounted(() => {
+  const rememberedEmail = localStorage.getItem(REMEMBERED_EMAIL_KEY)
+  if (rememberedEmail) {
+    email.value = rememberedEmail
+    rememberLogin.value = true
+  }
+})
 
 const submit = async () => {
   errorMessage.value = ''
-  await auth.login({ email: email.value, password: password.value })
-  const actualRole = auth.user?.role
-  if (actualRole && actualRole !== role.value) {
-    await auth.logout()
-    errorMessage.value =
-      role.value === 'student'
-        ? 'Este usuario e professor. Use a opcao Professor para entrar.'
-        : 'Este usuario e aluno. Use a opcao Aluno para entrar.'
+
+  if (!email.value.trim()) {
+    errorMessage.value = 'Informe seu email.'
     return
   }
-  if (actualRole === 'teacher') {
-    router.push('/teacher/dashboard')
+
+  if (!password.value) {
+    errorMessage.value = 'Informe sua senha.'
+    return
+  }
+
+  if (rememberLogin.value) {
+    localStorage.setItem(REMEMBERED_EMAIL_KEY, email.value.trim())
   } else {
-    router.push('/student/dashboard')
+    localStorage.removeItem(REMEMBERED_EMAIL_KEY)
+  }
+
+  loading.value = true
+
+  try {
+    await auth.login({ email: email.value.trim(), password: password.value })
+
+    const actualRole = auth.user?.role
+    if (actualRole && actualRole !== role.value) {
+      await auth.logout()
+      errorMessage.value =
+        role.value === 'student'
+          ? 'Este usuário é professor. Use a opção Professor para entrar.'
+          : 'Este usuário é aluno. Use a opção Aluno para entrar.'
+      return
+    }
+
+    if (actualRole === 'teacher') {
+      router.push('/teacher/dashboard')
+    } else {
+      router.push('/student/dashboard')
+    }
+  } catch (error) {
+    errorMessage.value = extractApiErrorMessage(error, 'Não foi possível fazer login.')
+  } finally {
+    loading.value = false
   }
 }
 </script>

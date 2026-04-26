@@ -1,0 +1,646 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "MOVIC API",
+    "version": "1.0.0",
+    "description": "Documentação interativa da API do MOVIC."
+  },
+  "servers": [
+    { "url": "http://localhost:8000/api" }
+  ],
+  "tags": [
+    { "name": "Auth", "description": "Cadastro, login e sessão." },
+    { "name": "Profile", "description": "Perfil do usuário autenticado." },
+    { "name": "Teacher", "description": "Recursos do professor." },
+    { "name": "Student", "description": "Recursos do aluno." }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "AuthRegister": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "email": { "type": "string", "format": "email" },
+          "password": { "type": "string" },
+          "role": { "type": "string", "enum": ["teacher", "student"] }
+        },
+        "required": ["name", "email", "password", "role"]
+      },
+      "AuthLogin": {
+        "type": "object",
+        "properties": {
+          "email": { "type": "string", "format": "email" },
+          "password": { "type": "string" }
+        },
+        "required": ["email", "password"]
+      },
+      "InviteStudent": {
+        "type": "object",
+        "properties": {
+          "email": { "type": "string", "format": "email" }
+        },
+        "required": ["email"]
+      },
+      "StatusUpdate": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["active", "trial", "pending_payment", "inactive"]
+          }
+        },
+        "required": ["status"]
+      },
+      "ExerciseCreate": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "category": { "type": "string" },
+          "video_url": { "type": "string" }
+        },
+        "required": ["name"]
+      },
+      "PlanCreate": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string" }
+        },
+        "required": ["title"]
+      },
+      "WorkoutDayCreate": {
+        "type": "object",
+        "properties": {
+          "weekday": { "type": "integer", "minimum": 0, "maximum": 6 },
+          "title": { "type": "string" }
+        },
+        "required": ["weekday", "title"]
+      },
+      "WorkoutItemCreate": {
+        "type": "object",
+        "properties": {
+          "exercise_id": { "type": "integer" },
+          "sets": { "type": "integer" },
+          "reps": { "type": "string" },
+          "rest_seconds": { "type": "integer" }
+        },
+        "required": ["exercise_id", "sets", "reps"]
+      },
+      "PaymentRegister": {
+        "type": "object",
+        "properties": {
+          "student_id": { "type": "integer" },
+          "amount_cents": { "type": "integer" },
+          "method": { "type": "string", "enum": ["pix", "card", "cash"] },
+          "description": { "type": "string" },
+          "transaction_id": { "type": "string" }
+        },
+        "required": ["student_id", "amount_cents", "method"]
+      },
+      "ManualPayment": {
+        "type": "object",
+        "properties": {
+          "plan_id": { "type": "integer" },
+          "amount_cents": { "type": "integer" },
+          "method": { "type": "string", "enum": ["pix", "card", "cash"] }
+        },
+        "required": ["plan_id", "amount_cents", "method"]
+      },
+      "SessionStart": {
+        "type": "object",
+        "properties": {
+          "workout_day_id": { "type": "integer" }
+        },
+        "required": ["workout_day_id"]
+      },
+      "SessionCheck": {
+        "type": "object",
+        "properties": {
+          "workout_item_id": { "type": "integer" },
+          "is_checked": { "type": "boolean" }
+        },
+        "required": ["workout_item_id", "is_checked"]
+      }
+    }
+  },
+  "paths": {
+    "/auth/register": {
+      "post": {
+        "summary": "Registrar usuário",
+        "tags": ["Auth"],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AuthRegister" } } }
+        },
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "summary": "Login",
+        "tags": ["Auth"],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AuthLogin" } } }
+        },
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "summary": "Logout",
+        "tags": ["Auth"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/me": {
+      "get": {
+        "summary": "Dados do usuário autenticado",
+        "tags": ["Auth"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/user/profile": {
+      "patch": {
+        "summary": "Atualizar perfil",
+        "tags": ["Profile"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/user/password": {
+      "patch": {
+        "summary": "Atualizar senha",
+        "tags": ["Profile"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/user/avatar": {
+      "post": {
+        "summary": "Enviar avatar",
+        "tags": ["Profile"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/me/profile": {
+      "patch": {
+        "summary": "Alias atualizar perfil",
+        "tags": ["Profile"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/me/password": {
+      "patch": {
+        "summary": "Alias atualizar senha",
+        "tags": ["Profile"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/me/avatar": {
+      "post": {
+        "summary": "Alias enviar avatar",
+        "tags": ["Profile"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/teacher/dashboard": {
+      "get": {
+        "summary": "Dashboard do professor",
+        "tags": ["Teacher"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/teacher/requests": {
+      "get": {
+        "summary": "Listar solicitações de alunos",
+        "tags": ["Teacher"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/teacher/requests/{studentId}/approve": {
+      "post": {
+        "summary": "Aprovar solicitação",
+        "tags": ["Teacher"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "studentId", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/teacher/requests/{studentId}/reject": {
+      "post": {
+        "summary": "Rejeitar solicitação",
+        "tags": ["Teacher"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "studentId", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/teacher/students/invite": {
+      "post": {
+        "summary": "Convidar aluno",
+        "tags": ["Teacher"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/InviteStudent" } } }
+        },
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/teacher/students/{id}/approve": {
+      "post": {
+        "summary": "Aprovar aluno convidado",
+        "tags": ["Teacher"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/teacher/students": {
+      "get": {
+        "summary": "Listar alunos",
+        "tags": ["Teacher"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/teacher/students/{id}/overview": {
+      "get": {
+        "summary": "Resumo do aluno",
+        "tags": ["Teacher"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/teacher/students/{id}/status": {
+      "patch": {
+        "summary": "Atualizar status do aluno",
+        "tags": ["Teacher"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/StatusUpdate" } } }
+        },
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/teacher/students/{id}/reset-password": {
+      "post": {
+        "summary": "Resetar senha do aluno",
+        "tags": ["Teacher"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/teacher/students/{id}": {
+      "delete": {
+        "summary": "Remover aluno",
+        "tags": ["Teacher"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/teacher/workouts": {
+      "get": {
+        "summary": "Listar treinos",
+        "tags": ["Teacher"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/teacher/workouts/days": {
+      "post": {
+        "summary": "Criar dia de treino",
+        "tags": ["Teacher"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/WorkoutDayCreate" } } }
+        },
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/teacher/workouts/days/{dayId}/items": {
+      "post": {
+        "summary": "Criar item de treino",
+        "tags": ["Teacher"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "dayId", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/WorkoutItemCreate" } } }
+        },
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/teacher/workouts/items/{itemId}": {
+      "put": {
+        "summary": "Atualizar item de treino",
+        "tags": ["Teacher"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "itemId", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": { "200": { "description": "OK" } }
+      },
+      "delete": {
+        "summary": "Remover item de treino",
+        "tags": ["Teacher"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "itemId", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/teacher/exercises": {
+      "get": {
+        "summary": "Listar exercicios",
+        "tags": ["Teacher"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "OK" } }
+      },
+      "post": {
+        "summary": "Criar exercicio",
+        "tags": ["Teacher"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ExerciseCreate" } } }
+        },
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/teacher/exercises/{exerciseId}": {
+      "put": {
+        "summary": "Atualizar exercicio",
+        "tags": ["Teacher"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "exerciseId", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "requestBody": {
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ExerciseCreate" } } }
+        },
+        "responses": { "200": { "description": "OK" } }
+      },
+      "delete": {
+        "summary": "Remover exercicio",
+        "tags": ["Teacher"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "exerciseId", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/teacher/students/{studentId}/plans": {
+      "post": {
+        "summary": "Criar plano",
+        "tags": ["Teacher"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "studentId", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PlanCreate" } } }
+        },
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/teacher/plans/{plan}/activate": {
+      "patch": {
+        "summary": "Ativar plano",
+        "tags": ["Teacher"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "plan", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/teacher/plans/{plan}/days": {
+      "post": {
+        "summary": "Criar dia do plano",
+        "tags": ["Teacher"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "plan", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/WorkoutDayCreate" } } }
+        },
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/teacher/days/{day}/items": {
+      "post": {
+        "summary": "Criar item do dia",
+        "tags": ["Teacher"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "day", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/WorkoutItemCreate" } } }
+        },
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/teacher/payments": {
+      "get": {
+        "summary": "Listar pagamentos",
+        "tags": ["Teacher"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/teacher/payments/register": {
+      "post": {
+        "summary": "Registrar pagamento manual",
+        "tags": ["Teacher"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PaymentRegister" } } }
+        },
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/teacher/payments/{paymentId}/receipt.pdf": {
+      "get": {
+        "summary": "Gerar recibo PDF",
+        "tags": ["Teacher"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "paymentId", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/teacher/payments/{paymentId}/send-receipt": {
+      "post": {
+        "summary": "Enviar recibo por email",
+        "tags": ["Teacher"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "paymentId", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/teacher/history": {
+      "get": {
+        "summary": "Histórico do professor",
+        "tags": ["Teacher"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/student/dashboard": {
+      "get": {
+        "summary": "Dashboard do aluno",
+        "tags": ["Student"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/student/plan/active": {
+      "get": {
+        "summary": "Plano ativo",
+        "tags": ["Student"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/student/sessions/start": {
+      "post": {
+        "summary": "Iniciar sessão",
+        "tags": ["Student"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SessionStart" } } }
+        },
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/student/sessions/{session}/check": {
+      "post": {
+        "summary": "Marcar exercicio feito",
+        "tags": ["Student"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "session", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SessionCheck" } } }
+        },
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/student/sessions/{session}/finish": {
+      "post": {
+        "summary": "Finalizar sessão",
+        "tags": ["Student"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "session", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/student/payments": {
+      "get": {
+        "summary": "Listar pagamentos",
+        "tags": ["Student"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/student/payments/{id}": {
+      "get": {
+        "summary": "Detalhe do pagamento",
+        "tags": ["Student"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/student/payments/{id}/pdf": {
+      "get": {
+        "summary": "Baixar recibo PDF",
+        "tags": ["Student"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/student/payments/{id}/email": {
+      "post": {
+        "summary": "Enviar recibo por email",
+        "tags": ["Student"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/student/payments/manual": {
+      "post": {
+        "summary": "Registrar pagamento manual",
+        "tags": ["Student"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ManualPayment" } } }
+        },
+        "responses": { "200": { "description": "OK" } }
+      }
+    }
+  }
+}

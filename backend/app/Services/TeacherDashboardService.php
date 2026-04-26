@@ -48,12 +48,13 @@ class TeacherDashboardService
 
     private function countPaymentsOk(int $teacherId): int
     {
-        $month = Carbon::now()->format('Y-m');
+        $now = Carbon::now();
 
         $paidInMonth = Payment::join('teacher_student', 'teacher_student.student_id', '=', 'payments.student_id')
             ->where('teacher_student.teacher_id', $teacherId)
             ->where('payments.status', 'paid')
-            ->whereRaw("DATE_FORMAT(payments.paid_at, '%Y-%m') = ?", [$month])
+            ->whereYear('payments.paid_at', $now->year)
+            ->whereMonth('payments.paid_at', $now->month)
             ->select('payments.student_id')
             ->distinct()
             ->pluck('payments.student_id')

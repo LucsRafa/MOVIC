@@ -1,22 +1,22 @@
 <template>
   <div class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/70 px-4 py-8">
-    <div class="w-full max-w-2xl rounded-2xl bg-[#0f172a] p-4 text-white shadow-2xl">
+    <div class="w-full max-w-3xl rounded-2xl bg-[#0f172a] p-4 text-white shadow-2xl sm:p-5">
       <div class="flex items-center justify-between">
-        <h3 class="text-lg font-semibold">Anexar Exercicio</h3>
+        <h3 class="text-lg font-semibold">Anexar exercício</h3>
         <button class="text-white/70 hover:text-white" @click="$emit('close')">x</button>
       </div>
-      <p class="text-sm text-white/60">Selecione um exercicio cadastrado e configure series e repeticoes.</p>
+      <p class="text-sm text-white/60">Selecione um exercício cadastrado e configure séries e repetições.</p>
 
       <div class="mt-4 grid gap-4 md:grid-cols-[1.2fr_1fr]">
         <div>
           <input
             v-model="search"
             class="w-full rounded-xl bg-white/10 px-4 py-3 text-sm"
-            placeholder="Buscar exercicio..."
+            placeholder="Buscar exercício..."
           />
           <div class="mt-3 max-h-[360px] space-y-2 overflow-y-auto">
             <div v-if="filteredExercises.length === 0" class="rounded-xl bg-white/5 p-3 text-sm text-white/60">
-              Nenhum exercicio cadastrado.
+              Nenhum exercício cadastrado.
             </div>
             <button
               v-for="exercise in filteredExercises"
@@ -39,25 +39,25 @@
         </div>
 
         <div class="rounded-2xl bg-white/5 p-4">
-          <p class="text-sm text-white/60">Exercicio selecionado</p>
+          <p class="text-sm text-white/60">Exercício selecionado</p>
           <p class="mt-1 text-sm font-semibold">
             {{ selectedExercise?.name || 'Nenhum' }}
           </p>
 
-          <div class="mt-4 grid grid-cols-3 gap-2">
-            <input v-model.number="form.sets" type="number" class="rounded-xl bg-white/10 px-3 py-2 text-sm" placeholder="Sets" />
-            <input v-model="form.reps" class="rounded-xl bg-white/10 px-3 py-2 text-sm" placeholder="Reps" />
+          <div class="mt-4 grid gap-2 sm:grid-cols-3">
+            <input v-model.number="form.sets" type="number" class="rounded-xl bg-white/10 px-3 py-2 text-sm" placeholder="Séries" />
+            <input v-model="form.reps" class="rounded-xl bg-white/10 px-3 py-2 text-sm" placeholder="Repetições" />
             <input v-model.number="form.rest_seconds" type="number" class="rounded-xl bg-white/10 px-3 py-2 text-sm" placeholder="Descanso" />
           </div>
           <input v-model.number="form.item_order" type="number" class="mt-3 w-full rounded-xl bg-white/10 px-4 py-3 text-sm" placeholder="Ordem" />
-          <textarea v-model="form.notes" class="mt-3 w-full rounded-xl bg-white/10 px-4 py-3 text-sm" placeholder="Observacoes"></textarea>
+          <textarea v-model="form.notes" class="mt-3 w-full rounded-xl bg-white/10 px-4 py-3 text-sm" placeholder="Observações"></textarea>
 
           <button
-            class="mt-4 w-full rounded-xl bg-emerald-500 px-4 py-3 text-sm font-semibold disabled:opacity-40"
-            :disabled="!form.exercise_id"
+            class="mt-4 w-full rounded-xl bg-emerald-500 px-4 py-3 text-sm font-semibold hover:bg-emerald-400 disabled:hover:bg-emerald-500"
+            :disabled="!form.exercise_id || loading"
             @click="submit"
           >
-            Adicionar exercicio
+            {{ loading ? 'Adicionando...' : 'Adicionar exercício' }}
           </button>
         </div>
       </div>
@@ -68,7 +68,7 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue'
 
-const props = defineProps<{ exercises: any[] }>()
+const props = defineProps<{ exercises: any[]; loading?: boolean }>()
 const emit = defineEmits(['close', 'select'])
 
 const search = ref('')

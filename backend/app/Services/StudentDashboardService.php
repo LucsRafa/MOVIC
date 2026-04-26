@@ -54,6 +54,7 @@ class StudentDashboardService
                 'today_exercises_done' => $todayDone,
                 'today_exercises_total' => $todayTotal,
                 'avg_workout_minutes' => $avgMinutes,
+                'avg_minutes' => $avgMinutes,
                 'estimated_finish_minutes' => $estimatedRemaining,
             ],
             'today' => [
@@ -94,14 +95,17 @@ class StudentDashboardService
         }
 
         $items = $day->items()->with('exercise')->orderBy('item_order')->get();
-        $checkedIds = $session
+        $checksByItemId = $session
             ? WorkoutItemCheck::where('workout_session_id', $session->id)
                 ->where('is_checked', true)
-                ->pluck('workout_item_id')
-                ->all()
-            : [];
+                ->get()
+                ->keyBy('workout_item_id')
+            : collect();
 
-        $mapped = $items->map(function ($item) use ($checkedIds) {
+        $mapped = $items->map(function ($item) use ($checksByItemId) {
+            $check = $checksByItemId->get($item->id);
+            $completedAt = $check?->checked_at?->toIso8601String();
+
             return [
                 'workout_item_id' => $item->id,
                 'order' => $item->item_order,
@@ -115,7 +119,8 @@ class StudentDashboardService
                 'sets' => $item->sets,
                 'reps' => $item->reps,
                 'rest_seconds' => $item->rest_seconds,
-                'is_checked' => in_array($item->id, $checkedIds, true),
+                'completed_at' => $completedAt,
+                'is_checked' => (bool) $completedAt,
             ];
         });
 

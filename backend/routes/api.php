@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ExerciseController;
+use App\Http\Controllers\Api\PasswordController;
 use App\Http\Controllers\Api\StudentPaymentController;
 use App\Http\Controllers\Api\StudentPlanController;
 use App\Http\Controllers\Api\StudentDashboardController;
@@ -20,14 +21,39 @@ use App\Http\Controllers\Api\WorkoutPlanController;
 use App\Http\Controllers\Api\WorkoutSessionController;
 use Illuminate\Support\Facades\Route;
 
+Route::post('forgot-password', [PasswordController::class, 'forgot'])->middleware('throttle:password-reset');
+Route::post('reset-password', [PasswordController::class, 'reset'])->middleware('throttle:password-reset');
+
 Route::prefix('auth')->group(function () {
     Route::post('register', [AuthController::class, 'register']);
-    Route::post('login', [AuthController::class, 'login']);
+    Route::post('login', [AuthController::class, 'login'])->middleware('throttle:login');
+    Route::post('forgot-password', [PasswordController::class, 'forgot'])->middleware('throttle:password-reset');
+    Route::post('reset-password', [PasswordController::class, 'reset'])->middleware('throttle:password-reset');
+});
+
+Route::get('documentation', function () {
+    return view('api-documentation');
+});
+
+Route::get('openapi.json', function () {
+    $path = base_path('resources/openapi.json');
+    return response()->file($path, [
+        'Content-Type' => 'application/json'
+    ]);
+});
+
+Route::get('/', function () {
+    return response()->json([
+        'status' => 'ok',
+        'message' => 'MOVIC API',
+        'documentation' => url('/api/documentation')
+    ]);
 });
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('auth/logout', [AuthController::class, 'logout']);
     Route::get('me', [AuthController::class, 'me']);
+    Route::post('workout-items/{itemId}/toggle', [WorkoutSessionController::class, 'toggle']);
 
     Route::patch('user/profile', [UserProfileController::class, 'updateProfile']);
     Route::patch('user/password', [UserProfileController::class, 'updatePassword']);

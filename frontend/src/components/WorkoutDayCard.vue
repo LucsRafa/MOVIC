@@ -8,7 +8,7 @@
       <slot name="actions" />
     </div>
     <div class="mt-4 space-y-2">
-      <WorkoutItemRow v-for="item in day.items" :key="item.id" :item="item" @toggle="onToggle" />
+      <WorkoutItemRow v-for="(item, idx) in day.items" :key="item.id" :item="item" :index="idx" @toggle="onToggle" />
     </div>
   </div>
 </template>

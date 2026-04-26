@@ -30,11 +30,19 @@ export const useAuthStore = defineStore('auth', {
       localStorage.setItem('role', data.user.role)
     },
     async login(payload: { email: string; password: string }) {
-      const { data } = await api.post('/auth/login', payload)
+      const { data } = await api.post('/auth/login', payload, { skipErrorToast: true } as any)
       this.user = data.user
       this.token = data.token
       localStorage.setItem('token', data.token)
       localStorage.setItem('role', data.user.role)
+    },
+    async forgotPassword(email: string) {
+      const { data } = await api.post('/forgot-password', { email }, { skipErrorToast: true } as any)
+      return data
+    },
+    async resetPassword(payload: { token: string; email: string; password: string; password_confirmation: string }) {
+      const { data } = await api.post('/reset-password', payload, { skipErrorToast: true } as any)
+      return data
     },
     async fetchMe() {
       const { data } = await api.get('/me')
@@ -44,7 +52,7 @@ export const useAuthStore = defineStore('auth', {
       }
     },
     async logout() {
-      await api.post('/auth/logout')
+      await api.post('/auth/logout', {}, { skipErrorToast: true } as any)
       this.user = null
       this.token = null
       localStorage.removeItem('token')

@@ -9,7 +9,7 @@
       <button
         v-for="day in days"
         :key="day.weekday"
-        class="w-full rounded-xl border border-white/10 px-4 py-3 text-left"
+        class="w-full rounded-xl border border-white/10 px-4 py-3 text-left hover:bg-white/10"
         :class="day.status === 'completed' ? 'bg-emerald-500/10 border-emerald-400/30' : day.status === 'missed' ? 'bg-red-500/10 border-red-400/30' : 'bg-white/5'"
         @click="$emit('select', day.weekday)"
       >
@@ -18,7 +18,7 @@
             class="flex h-8 w-8 items-center justify-center rounded-full border"
             :class="day.status === 'completed' ? 'border-emerald-400 text-emerald-300' : day.status === 'missed' ? 'border-red-400 text-red-300' : 'border-white/20 text-white/60'"
           >
-            <span v-if="day.status === 'completed'">ok</span>
+            <span v-if="day.status === 'completed'">OK</span>
             <span v-else-if="day.status === 'missed'">x</span>
             <span v-else>o</span>
           </div>
@@ -33,7 +33,7 @@
 </template>
 
 <script setup lang="ts">
-const props = defineProps<{ days: any[] }>()
+defineProps<{ days: any[] }>()
 
 const labels = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab']
 const weekdayLabel = (weekday: number) => labels[weekday] || ''

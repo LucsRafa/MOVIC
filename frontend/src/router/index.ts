@@ -5,6 +5,7 @@ import TeacherLayout from '../layouts/TeacherLayout.vue'
 import Login from '../pages/Login.vue'
 import Register from '../pages/Register.vue'
 import ForgotPassword from '../pages/ForgotPassword.vue'
+import ResetPassword from '../pages/ResetPassword.vue'
 import TeacherDashboard from '../pages/Teacher/Dashboard.vue'
 import TeacherRequests from '../pages/Teacher/Requests.vue'
 import TeacherStudents from '../pages/Teacher/Students.vue'
@@ -32,6 +33,11 @@ const router = createRouter({
       path: '/forgot-password',
       component: AuthLayout,
       children: [{ path: '', component: ForgotPassword }]
+    },
+    {
+      path: '/reset-password',
+      component: AuthLayout,
+      children: [{ path: '', component: ResetPassword }]
     },
     {
       path: '/teacher',

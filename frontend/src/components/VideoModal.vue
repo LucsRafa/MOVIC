@@ -1,8 +1,8 @@
 ﻿<template>
   <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
-    <div class="w-full max-w-xl rounded-2xl bg-[#0f172a] p-4 text-white shadow-2xl">
+    <div class="w-full max-w-xl rounded-2xl bg-[#0f172a] p-4 text-white shadow-2xl sm:p-5">
       <div class="flex items-center justify-between">
-        <h3 class="text-lg font-semibold">Video do Exercicio</h3>
+        <h3 class="text-lg font-semibold">Vídeo do exercício</h3>
         <button class="text-white/70 hover:text-white" @click="$emit('close')">x</button>
       </div>
       <div class="mt-4 aspect-video w-full overflow-hidden rounded-xl bg-black">

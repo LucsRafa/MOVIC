@@ -32,7 +32,7 @@ class TeacherWorkoutItemController extends Controller
         if (!$linked) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Aluno nao pertence a este professor.',
+                'message' => 'Aluno não pertence a este professor.',
             ], 403);
         }
 
@@ -49,7 +49,7 @@ class TeacherWorkoutItemController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Exercicio adicionado ao treino.',
+            'message' => 'Exercício adicionado ao treino.',
             'item' => $item->load('exercise'),
         ], 201);
     }
@@ -72,7 +72,7 @@ class TeacherWorkoutItemController extends Controller
         if (!$linked) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Aluno nao pertence a este professor.',
+                'message' => 'Aluno não pertence a este professor.',
             ], 403);
         }
 
@@ -103,7 +103,7 @@ class TeacherWorkoutItemController extends Controller
         if (!$linked) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Aluno nao pertence a este professor.',
+                'message' => 'Aluno não pertence a este professor.',
             ], 403);
         }
 

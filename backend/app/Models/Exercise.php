@@ -20,6 +20,32 @@ class Exercise extends Model
         'is_active' => 'boolean',
     ];
 
+    public function getVideoUrlAttribute(?string $value): ?string
+    {
+        if (!$value) {
+            return null;
+        }
+
+        if (str_starts_with($value, 'http://') || str_starts_with($value, 'https://')) {
+            return $value;
+        }
+
+        return rtrim(config('app.url'), '/') . '/' . ltrim($value, '/');
+    }
+
+    public function getThumbnailUrlAttribute(?string $value): ?string
+    {
+        if (!$value) {
+            return null;
+        }
+
+        if (str_starts_with($value, 'http://') || str_starts_with($value, 'https://')) {
+            return $value;
+        }
+
+        return rtrim(config('app.url'), '/') . '/' . ltrim($value, '/');
+    }
+
     public function teacher()
     {
         return $this->belongsTo(User::class, 'teacher_id');

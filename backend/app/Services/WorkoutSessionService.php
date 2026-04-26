@@ -13,7 +13,7 @@ class WorkoutSessionService
     {
         $date = $sessionDate ? Carbon::parse($sessionDate)->toDateString() : Carbon::today()->toDateString();
 
-        return WorkoutSession::firstOrCreate(
+        $session = WorkoutSession::firstOrCreate(
             ['student_id' => $student->id, 'session_date' => $date],
             [
                 'teacher_id' => $day->workoutPlan->teacher_id,
@@ -23,5 +23,13 @@ class WorkoutSessionService
                 'started_at' => Carbon::now(),
             ]
         );
+
+        if (!$session->started_at) {
+            $session->forceFill([
+                'started_at' => Carbon::now(),
+            ])->save();
+        }
+
+        return $session->fresh();
     }
 }

@@ -14,7 +14,9 @@
         :subtitle="dashboard.today.workout_day.subtitle || undefined"
         :items="dashboard.today.workout_day.items"
         :progress="dashboard.today.workout_day.progress_percent"
-        :show-finish="true"
+        :show-finish="!isWorkoutCompleted"
+        :is-finishing="finishing"
+        :disable-actions="isWorkoutCompleted || finishing"
         @toggle="toggleItem"
         @video="openVideo"
         @finish="finish"
@@ -31,11 +33,11 @@
       />
 
       <div class="rounded-2xl bg-white/5 p-4">
-        <h3 class="text-lg font-semibold">Estatisticas</h3>
+        <h3 class="text-lg font-semibold">Estatísticas</h3>
         <div class="mt-3 space-y-3 text-sm text-white/70">
           <div>
             <div class="flex justify-between">
-              <span>Frequencia Mensal</span>
+              <span>Frequência mensal</span>
               <span>{{ dashboard?.week?.monthly_frequency_percent ?? 0 }}%</span>
             </div>
             <div class="mt-2 h-2 w-full rounded-full bg-white/10">
@@ -112,16 +114,19 @@ import PaymentModal from '../../components/PaymentModal.vue'
 import api from '../../api/http'
 import { useAuthStore } from '../../stores/auth'
 import { useStudentStore } from '../../stores/student'
+import { useToastStore } from '../../stores/toast'
 
 const student = useStudentStore()
 const auth = useAuthStore()
 const router = useRouter()
+const toast = useToastStore()
 
 const videoItem = ref<any | null>(null)
 const showReceipts = ref(false)
 const receiptDetail = ref<any | null>(null)
 const showSettings = ref(false)
 const showPayment = ref(false)
+const finishing = ref(false)
 
 const dashboard = computed(() => student.dashboard)
 const loading = computed(() => student.loading)
@@ -129,6 +134,7 @@ const payments = computed(() => student.payments)
 const userName = computed(() => dashboard.value?.user?.name || 'Aluno')
 
 const showTrial = computed(() => ['trial', 'experimental'].includes(dashboard.value?.subscription?.status))
+const isWorkoutCompleted = computed(() => dashboard.value?.today?.session?.status === 'completed')
 
 const weeklyGoalPercent = computed(() => {
   const done = dashboard.value?.week?.weekly_goal?.done || 0
@@ -137,31 +143,64 @@ const weeklyGoalPercent = computed(() => {
 })
 
 const dayLabel = computed(() => {
-  const labels = ['Domingo', 'Segunda-feira', 'Terca-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sabado']
+  const labels = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado']
   return labels[dashboard.value?.today?.weekday ?? 0]
 })
 
+const updateWorkoutProgress = () => {
+  if (!dashboard.value?.today?.workout_day?.items) {
+    return
+  }
+
+  const total = dashboard.value.today.workout_day.items.length
+  const done = dashboard.value.today.workout_day.items.filter((entry: any) => entry.is_checked).length
+  dashboard.value.today.workout_day.progress_percent = total ? Math.round((done / total) * 100) : 0
+}
+
 const toggleItem = async (item: any) => {
-  if (!student.session) {
-    const session = await student.startSession(dashboard.value?.today?.workout_day?.id)
-    student.session = session
+  if (isWorkoutCompleted.value || finishing.value) {
+    return
   }
-  item.is_checked = !item.is_checked
-  if (dashboard.value?.today?.workout_day?.items) {
-    const total = dashboard.value.today.workout_day.items.length
-    const done = dashboard.value.today.workout_day.items.filter((i: any) => i.is_checked).length
-    dashboard.value.today.workout_day.progress_percent = total ? Math.round((done / total) * 100) : 0
+
+  const workoutDayId = dashboard.value?.today?.workout_day?.id
+  if (!workoutDayId) {
+    return
   }
+
+  const previousCompletedAt = item.completed_at ?? null
+  item.completed_at = previousCompletedAt ? null : new Date().toISOString()
+  item.is_checked = Boolean(item.completed_at)
+  updateWorkoutProgress()
+
   try {
-    await student.checkItem(student.session.id, item.workout_item_id, item.is_checked)
+    const check = await student.toggleWorkoutItem(workoutDayId, item.workout_item_id)
+
+    item.completed_at = check?.completed_at ?? check?.checked_at ?? null
+    item.is_checked = Boolean(item.completed_at)
+    updateWorkoutProgress()
   } catch (e) {
-    item.is_checked = !item.is_checked
+    item.completed_at = previousCompletedAt
+    item.is_checked = Boolean(previousCompletedAt)
+    updateWorkoutProgress()
   }
 }
 
 const finish = async () => {
-  if (student.session) {
-    await student.finishSession(student.session.id)
+  if (!student.session || finishing.value) {
+    return
+  }
+
+  finishing.value = true
+
+  try {
+    await student.finishSession(student.session.id, { skipErrorToast: true })
+    await student.fetchDashboard()
+    toast.push('Treino finalizado com sucesso! 💪', 'success')
+    await router.push('/student/dashboard')
+  } catch (error) {
+    toast.push('Erro ao finalizar treino. Tente novamente.', 'error')
+  } finally {
+    finishing.value = false
   }
 }
 

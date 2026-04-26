@@ -28,7 +28,7 @@ class TeacherWorkoutsController extends Controller
         if (!$studentId) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'student_id e obrigatorio.',
+                'message' => 'student_id é obrigatório.',
             ], 422);
         }
 
@@ -39,7 +39,7 @@ class TeacherWorkoutsController extends Controller
         if (!$linked) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Aluno nao pertence a este professor.',
+                'message' => 'Aluno não pertence a este professor.',
             ], 403);
         }
 
@@ -83,7 +83,7 @@ class TeacherWorkoutsController extends Controller
         if (!$linked) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Aluno nao pertence a este professor.',
+                'message' => 'Aluno não pertence a este professor.',
             ], 403);
         }
 
@@ -99,7 +99,7 @@ class TeacherWorkoutsController extends Controller
         if ($exists) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Ja existe um treino cadastrado para este dia.',
+                'message' => 'Já existe um treino cadastrado para este dia.',
             ], 422);
         }
 

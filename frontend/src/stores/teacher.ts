@@ -45,6 +45,9 @@ export const useTeacherStore = defineStore('teacher', {
       const { data } = await api.get('/teacher/students', { params: { search } })
       this.students = data.students
     },
+    async loadStudents(search?: string) {
+      await this.fetchStudents(search)
+    },
     async fetchStudentOverview(studentId: number) {
       const { data } = await api.get(`/teacher/students/${studentId}/overview`)
       this.studentOverview = data.overview
@@ -119,6 +122,18 @@ export const useTeacherStore = defineStore('teacher', {
     async fetchHistory() {
       const { data } = await api.get('/teacher/history')
       this.history = data.history
+    },
+    async createPlan(studentId: number, payload: any) {
+      const { data } = await api.post(`/teacher/students/${studentId}/plans`, payload)
+      return data.plan
+    },
+    async addDay(planId: number, payload: any) {
+      const { data } = await api.post(`/teacher/plans/${planId}/days`, payload)
+      return data.day
+    },
+    async addItem(dayId: number, payload: any) {
+      const { data } = await api.post(`/teacher/days/${dayId}/items`, payload)
+      return data.item
     }
   }
 })

@@ -11,7 +11,7 @@
       <nav class="flex items-center gap-4 text-sm">
         <router-link v-if="role === 'teacher'" to="/teacher/dashboard">Dashboard</router-link>
         <router-link v-if="role === 'teacher'" to="/teacher/students">Alunos</router-link>
-        <router-link v-if="role === 'teacher'" to="/teacher/exercises">Exercicios</router-link>
+        <router-link v-if="role === 'teacher'" to="/teacher/exercises">Exercícios</router-link>
         <router-link v-if="role === 'teacher'" to="/teacher/plans">Planos</router-link>
         <router-link v-if="role === 'student'" to="/student/dashboard">Dashboard</router-link>
         <router-link v-if="role === 'student'" :to="`/student/workout/${today}`">Treino do dia</router-link>

@@ -29,7 +29,14 @@ class UserProfileController extends Controller
         $user = $request->user();
 
         if (!Hash::check($request->validated()['current_password'], $user->password)) {
-            return response()->json(['message' => 'Senha atual incorreta'], 422);
+            return response()->json([
+                'status' => 'error',
+                'error' => 'validation_error',
+                'message' => 'Senha atual incorreta.',
+                'errors' => [
+                    'current_password' => ['Senha atual incorreta.'],
+                ],
+            ], 422);
         }
 
         $user->update([

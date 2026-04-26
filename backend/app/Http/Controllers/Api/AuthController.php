@@ -43,7 +43,7 @@ class AuthController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Usuario registrado com sucesso.',
+            'message' => 'Usuário registrado com sucesso.',
             'user' => $user,
             'token' => $token,
         ], 201);
@@ -54,7 +54,11 @@ class AuthController extends Controller
         $credentials = $request->validated();
 
         if (!Auth::attempt($credentials)) {
-            return response()->json(['message' => 'Invalid credentials'], 401);
+            return response()->json([
+                'status' => 'error',
+                'error' => 'invalid_credentials',
+                'message' => 'Email ou senha inválidos.',
+            ], 401);
         }
 
         $user = $request->user();

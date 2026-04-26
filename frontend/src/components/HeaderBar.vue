@@ -1,5 +1,5 @@
 ﻿<template>
-  <header class="flex items-center justify-between">
+  <header class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
     <div class="flex items-center gap-3">
       <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/20 text-sm font-semibold text-emerald-200">
         MV
@@ -10,12 +10,12 @@
       </div>
     </div>
 
-    <div class="flex items-center gap-3">
-      <button class="rounded-full bg-white/5 p-2 text-white/80 hover:text-white" @click="$emit('settings')">
-        <span>CFG</span>
+    <div class="flex w-full items-center justify-between gap-3 sm:w-auto sm:justify-end">
+      <button class="rounded-full bg-white/5 px-4 py-2 text-white/80 hover:bg-white/10 hover:text-white" @click="$emit('settings')">
+        <span>Ajustes</span>
       </button>
-      <button class="rounded-full bg-white/5 p-2 text-white/80 hover:text-white" @click="$emit('logout')">
-        <span>OUT</span>
+      <button class="rounded-full bg-white/5 px-4 py-2 text-white/80 hover:bg-white/10 hover:text-white" @click="$emit('logout')">
+        <span>Sair</span>
       </button>
     </div>
   </header>

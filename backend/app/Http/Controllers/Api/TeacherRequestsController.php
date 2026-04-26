@@ -62,12 +62,28 @@ class TeacherRequestsController extends Controller
 
         $student = User::where('id', $studentId)
             ->where('role', UserRole::Student->value)
+            ->with('studentProfile')
             ->firstOrFail();
 
-        TeacherStudent::updateOrCreate(
-            ['student_id' => $student->id],
-            ['teacher_id' => $teacher->id]
-        );
+        if ($student->studentProfile?->status !== StudentStatus::Requested) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Esta solicitação não está mais pendente.',
+            ], 422);
+        }
+
+        $alreadyLinked = TeacherStudent::where('student_id', $student->id)->exists();
+        if ($alreadyLinked) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Este aluno já possui professor vinculado.',
+            ], 422);
+        }
+
+        TeacherStudent::create([
+            'student_id' => $student->id,
+            'teacher_id' => $teacher->id,
+        ]);
 
         $trialDays = Plan::where('is_active', true)->value('trial_days') ?? 7;
         $student->studentProfile()->update([
@@ -78,7 +94,7 @@ class TeacherRequestsController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Aluno aprovado e periodo experimental iniciado.',
+            'message' => 'Aluno aprovado e período experimental iniciado.',
         ]);
     }
 
@@ -94,7 +110,15 @@ class TeacherRequestsController extends Controller
 
         $student = User::where('id', $studentId)
             ->where('role', UserRole::Student->value)
+            ->with('studentProfile')
             ->firstOrFail();
+
+        if ($student->studentProfile?->status !== StudentStatus::Requested) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Esta solicitação não está mais pendente.',
+            ], 422);
+        }
 
         $student->studentProfile()->update([
             'status' => StudentStatus::Inactive->value,
@@ -103,7 +127,7 @@ class TeacherRequestsController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Solicitacao rejeitada com sucesso.',
+            'message' => 'Solicitação rejeitada com sucesso.',
         ]);
     }
 }

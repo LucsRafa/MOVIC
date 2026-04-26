@@ -11,6 +11,29 @@ export const useStudentStore = defineStore('student', {
     loading: false
   }),
   actions: {
+    syncWorkoutItemState(workoutDayId: number, workoutItemId: number, completedAt: string | null) {
+      const isChecked = Boolean(completedAt)
+
+      const todayWorkout = this.dashboard?.today?.workout_day
+      if (todayWorkout?.id === workoutDayId && Array.isArray(todayWorkout.items)) {
+        const dashboardItem = todayWorkout.items.find((item: any) => item.workout_item_id === workoutItemId)
+        if (dashboardItem) {
+          dashboardItem.completed_at = completedAt
+          dashboardItem.is_checked = isChecked
+        }
+
+        const total = todayWorkout.items.length
+        const done = todayWorkout.items.filter((item: any) => item.is_checked).length
+        todayWorkout.progress_percent = total ? Math.round((done / total) * 100) : 0
+      }
+
+      const planDay = this.activePlan?.days?.find((day: any) => day.id === workoutDayId)
+      const planItem = planDay?.items?.find((item: any) => item.id === workoutItemId || item.workout_item_id === workoutItemId)
+      if (planItem) {
+        planItem.completed_at = completedAt
+        planItem.is_checked = isChecked
+      }
+    },
     async loadActivePlan() {
       const { data } = await api.get('/student/plan/active')
       this.activePlan = data.plan
@@ -20,7 +43,7 @@ export const useStudentStore = defineStore('student', {
       try {
         const { data } = await api.get('/student/dashboard')
         this.dashboard = data
-        this.session = data.today?.session || null
+        this.session = data.today?.session?.status === 'completed' ? null : data.today?.session || null
       } finally {
         this.loading = false
       }
@@ -40,10 +63,21 @@ export const useStudentStore = defineStore('student', {
       })
       return data.check
     },
-    async finishSession(sessionId: number) {
-      const { data } = await api.post(`/student/sessions/${sessionId}/finish`)
-      this.session = data.session
-      return data.session
+    async toggleWorkoutItem(workoutDayId: number, workoutItemId: number, sessionDate?: string) {
+      const payload = sessionDate ? { session_date: sessionDate } : {}
+      const { data } = await api.post(`/workout-items/${workoutItemId}/toggle`, payload)
+      this.session = data.session?.status === 'completed' ? null : data.session || this.session
+
+      const completedAt = data.check?.completed_at ?? data.check?.checked_at ?? null
+      this.syncWorkoutItemState(workoutDayId, workoutItemId, completedAt)
+
+      return data.check
+    },
+    async finishSession(sessionId: number, options: { skipErrorToast?: boolean } = {}) {
+      const config = options.skipErrorToast ? ({ skipErrorToast: true } as any) : undefined
+      const { data } = await api.post(`/student/sessions/${sessionId}/finish`, {}, config)
+      this.session = null
+      return data
     },
     async loadPayments() {
       const { data } = await api.get('/student/payments')

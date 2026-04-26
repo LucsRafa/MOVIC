@@ -12,10 +12,10 @@ class ReceiptPdfService
             'Comprovante de Pagamento',
             'Aluno: ' . ($payment->student?->name ?? ''),
             'Data: ' . ($payment->paid_at?->format('d/m/Y') ?? ''),
-            'Metodo: ' . ($payment->method?->value ?? ''),
+            'Método: ' . ($payment->method?->value ?? ''),
             'Valor: R$ ' . number_format($payment->amount_cents / 100, 2, ',', '.'),
             'Status: ' . ($payment->status?->value ?? ''),
-            'Transacao: ' . ($payment->transaction_id ?? '-'),
+            'Transação: ' . ($payment->transaction_id ?? '-'),
         ], $lines);
 
         $y = 720;

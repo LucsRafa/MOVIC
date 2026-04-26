@@ -71,7 +71,10 @@ class StudentPaymentController extends Controller
     public function email(Request $request, int $id, ReceiptPdfService $pdfService): JsonResponse
     {
         $payment = Payment::where('student_id', Auth::id())->with('student')->findOrFail($id);
-        $to = $request->input('email') ?: Auth::user()->email;
+        $data = $request->validate([
+            'email' => ['nullable', 'email'],
+        ]);
+        $to = $data['email'] ?? Auth::user()->email;
 
         $pdf = $pdfService->generate($payment);
 

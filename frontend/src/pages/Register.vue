@@ -3,7 +3,7 @@
     class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600 shadow-sm transition hover:border-slate-300 hover:bg-slate-200"
     to="/login"
   >
-    <span>←</span> Voltar
+    <span>&larr;</span> Voltar
   </RouterLink>
 
   <div class="mt-6 text-center">
@@ -16,7 +16,7 @@
     </div>
     <p class="mt-3 text-sm text-slate-500">@jefftrainer</p>
     <h1 class="mt-3 text-2xl font-semibold text-[#2C3E60]">Primeiro acesso</h1>
-    <p class="mt-1 text-sm text-slate-500">Cadastre-se para comecar seu treino</p>
+    <p class="mt-1 text-sm text-slate-500">Cadastre-se para começar seu treino</p>
   </div>
 
   <div class="mt-6 rounded-full bg-slate-100 p-1">
@@ -37,9 +37,13 @@
   </div>
 
   <form class="mt-6 space-y-4" @submit.prevent="submit">
-    <label class="block text-left text-sm font-medium text-slate-600">Nome Completo:</label>
+    <p v-if="errorMessage" class="rounded-xl bg-red-50 px-4 py-2 text-sm text-red-600">
+      {{ errorMessage }}
+    </p>
+
+    <label class="block text-left text-sm font-medium text-slate-600">Nome completo:</label>
     <div class="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-      <span class="text-slate-400">??</span>
+      <span class="text-slate-400">#</span>
       <input v-model="name" class="w-full bg-transparent text-sm outline-none" placeholder="Seu nome completo" />
     </div>
 
@@ -51,7 +55,7 @@
 
     <label class="block text-left text-sm font-medium text-slate-600">Telefone:</label>
     <div class="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-      <span class="text-slate-400">?</span>
+      <span class="text-slate-400">+55</span>
       <input v-model="phone" class="w-full bg-transparent text-sm outline-none" placeholder="(00) 00000-0000" />
     </div>
 
@@ -95,7 +99,7 @@
       </button>
     </div>
 
-    <label class="block text-left text-sm font-medium text-slate-600">Confirmar Senha:</label>
+    <label class="block text-left text-sm font-medium text-slate-600">Confirmar senha:</label>
     <div class="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
       <span class="text-slate-400">*</span>
       <input
@@ -136,15 +140,16 @@
     </div>
 
     <button
-      class="w-full rounded-xl bg-gradient-to-r from-[#27AE60] to-[#229954] px-4 py-3 text-sm font-semibold text-white shadow"
+      class="w-full rounded-xl bg-gradient-to-r from-[#27AE60] to-[#229954] px-4 py-3 text-sm font-semibold text-white shadow disabled:opacity-60"
       type="submit"
+      :disabled="loading"
     >
-      Criar Conta
+      {{ loading ? 'Criando conta...' : 'Criar conta' }}
     </button>
   </form>
 
   <p class="mt-6 text-center text-xs text-slate-500">
-    Apos o cadastro, aguarde a aprovacao do professor para comecar seu periodo experimental.
+    Após o cadastro, aguarde a aprovação do professor para começar seu período experimental.
   </p>
 </template>
 
@@ -152,6 +157,7 @@
 import { ref } from 'vue'
 import { useRouter, RouterLink } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import { extractApiErrorMessage } from '../utils/apiError'
 
 const name = ref('')
 const email = ref('')
@@ -161,22 +167,34 @@ const confirm = ref('')
 const showPassword = ref(false)
 const showConfirm = ref(false)
 const role = ref<'teacher' | 'student'>('student')
+const loading = ref(false)
+const errorMessage = ref('')
 
 const auth = useAuthStore()
 const router = useRouter()
 
 const submit = async () => {
-  await auth.register({
-    name: name.value,
-    email: email.value,
-    password: password.value,
-    role: role.value,
-    phone: phone.value
-  })
-  if (auth.user?.role === 'teacher') {
-    router.push('/teacher/dashboard')
-  } else {
-    router.push('/student/dashboard')
+  errorMessage.value = ''
+  loading.value = true
+
+  try {
+    await auth.register({
+      name: name.value,
+      email: email.value,
+      password: password.value,
+      role: role.value,
+      phone: phone.value
+    })
+
+    if (auth.user?.role === 'teacher') {
+      router.push('/teacher/dashboard')
+    } else {
+      router.push('/student/dashboard')
+    }
+  } catch (error) {
+    errorMessage.value = extractApiErrorMessage(error, 'Não foi possível concluir o cadastro.')
+  } finally {
+    loading.value = false
   }
 }
 </script>
