@@ -7,6 +7,7 @@ export default defineConfig({
     host: true,
     port: 5173,
     strictPort: true,
+    allowedHosts: ['.trycloudflare.com'],
     proxy: {
       '/api': {
         target: 'http://localhost:8000',
